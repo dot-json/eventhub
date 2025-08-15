@@ -1,0 +1,45 @@
+FROM node:24-alpine AS alpine
+RUN apk update
+RUN apk add --no-cache libc6-compat
+
+FROM alpine AS base
+
+RUN npm install pnpm turbo --global && \
+    pnpm config set store-dir ~/.pnpm-store
+
+FROM base AS pruner
+
+WORKDIR /app
+COPY . .
+RUN turbo prune --scope=@repo/web --docker
+
+FROM base AS builder
+
+WORKDIR /app
+COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=pruner /app/out/json/ .
+
+RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm install --frozen-lockfile
+COPY --from=pruner /app/out/full/ .
+
+RUN turbo build --filter=@repo/web
+RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm prune --prod --no-optional
+RUN rm -rf ./**/*/src
+
+FROM nginx:alpine AS runner
+
+ARG WEB_PORT=3000
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nodejs
+
+WORKDIR /app
+COPY --from=builder --chown=nodejs:nodejs /app/apps/web/dist /usr/share/nginx/html
+
+# Copy custom nginx configuration
+COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE ${WEB_PORT}
+
+CMD ["nginx", "-g", "daemon off;"]
