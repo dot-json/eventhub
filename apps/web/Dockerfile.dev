@@ -1,0 +1,19 @@
+FROM node:24-alpine
+
+WORKDIR /app
+
+RUN npm install -g pnpm
+
+# Copy package files first for dependency installation
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/ packages/
+COPY apps/web/package.json apps/web/
+
+# Install dependencies in container (Linux binaries)
+RUN pnpm install
+
+WORKDIR /app/apps/web
+
+EXPOSE 3000
+
+CMD ["pnpm", "dev", "--host", "0.0.0.0"]

@@ -33,13 +33,19 @@ services:
   web:
     build:
       context: .
-      dockerfile: ./apps/web/Dockerfile
-      args:
-        WEB_PORT: ${WEB_PORT:-3000}
-    container_name: eventhub-app-web
-    env_file: .env
+      dockerfile: apps/web/Dockerfile.dev
+    container_name: eventhub-app-web-dev
     ports:
-      - "${WEB_PORT}:${WEB_PORT}"
+      - "3000:3000"
+    volumes:
+      - ./apps/web/src:/app/apps/web/src
+      - ./apps/web/public:/app/apps/web/public
+      - ./apps/web/index.html:/app/apps/web/index.html
+      - ./apps/web/vite.config.ts:/app/apps/web/vite.config.ts
+      - ./apps/web/tailwind.config.ts:/app/apps/web/tailwind.config.ts
+      - ./packages:/app/packages
+    environment:
+      - NODE_ENV=development
     networks:
       - eventhub-network
     depends_on:
