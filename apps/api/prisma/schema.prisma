@@ -15,16 +15,63 @@ enum UserRole {
   CUSTOMER
 }
 
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+}
+
 model User {
-  id            Int      @id @default(autoincrement())
-  email         String   @unique
-  password      String
-  first_name    String
-  last_name     String
-  role          UserRole @default(CUSTOMER)
-  is_blocked    Boolean  @default(false)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  id                  Int         @id @default(autoincrement())
+  email               String      @unique
+  password            String
+  first_name          String
+  last_name           String
+  org_name            String?
+  role                UserRole    @default(CUSTOMER)
+  is_blocked          Boolean     @default(false)
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @updatedAt
+
+  events              Event[]
+  tickets             Ticket[]
 
   @@map("users")
+}
+
+model Event {
+  id                  Int          @id @default(autoincrement())
+  title               String
+  description         String
+  category            String?
+  start_date          DateTime
+  end_date            DateTime
+  location            String
+  capacity            Int
+  ticket_price        Int
+  tickets_remaining   Int
+  status              EventStatus   @default(DRAFT)
+  organizer_id        Int
+  created_at          DateTime      @default(now())
+  updated_at          DateTime      @updatedAt
+
+  organizer           User          @relation(fields: [organizer_id], references: [id])
+  tickets             Ticket[]
+
+  @@map("events")
+}
+
+model Ticket {
+  id                  Int           @id @default(autoincrement())
+  event_id            Int
+  user_id             Int
+  hash                String        @unique
+  is_used             Boolean       @default(false)
+  created_at          DateTime      @default(now())
+  updated_at          DateTime      @updatedAt
+
+  event               Event         @relation(fields: [event_id], references: [id])
+  user                User          @relation(fields: [user_id], references: [id])
+
+  @@map("tickets")
 }

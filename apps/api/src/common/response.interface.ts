@@ -1,0 +1,56 @@
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
+  count?: number;
+}
+
+export interface PaginatedApiResponse<T = any> extends ApiResponse<T[]> {
+  count: number;
+  page?: number;
+  totalPages?: number;
+  totalCount?: number;
+}
+
+export class ResponseBuilder {
+  static success<T>(
+    data: T,
+    message: string = 'Operation successful',
+  ): ApiResponse<T> {
+    return {
+      success: true,
+      message,
+      data,
+    };
+  }
+
+  static successWithCount<T>(
+    data: T[],
+    message: string = 'Operation successful',
+  ): ApiResponse<T[]> & { count: number } {
+    return {
+      success: true,
+      message,
+      data,
+      count: data.length,
+    };
+  }
+
+  static successNoData(
+    message: string = 'Operation successful',
+  ): Omit<ApiResponse, 'data'> {
+    return {
+      success: true,
+      message,
+    };
+  }
+
+  static error(
+    message: string = 'Operation failed',
+  ): Omit<ApiResponse, 'data'> {
+    return {
+      success: false,
+      message,
+    };
+  }
+}

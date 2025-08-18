@@ -17,31 +17,6 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Creates a new user with hashed password
-   */
-  async create(createUserDto: CreateUserDto): Promise<SafeUser> {
-    await this.validateEmailUniqueness(createUserDto.email);
-
-    const hashedPassword = await this.hashPassword(createUserDto.password);
-
-    try {
-      const user = await this.prisma.user.create({
-        data: {
-          email: createUserDto.email,
-          password: hashedPassword,
-          first_name: createUserDto.first_name,
-          last_name: createUserDto.last_name,
-          role: (createUserDto.role as UserRole) || UserRole.CUSTOMER,
-        },
-      });
-
-      return this.excludePassword(user);
-    } catch (error) {
-      throw new BadRequestException('Failed to create user');
-    }
-  }
-
-  /**
    * Retrieves all users (excluding passwords)
    */
   async findAll(): Promise<SafeUser[]> {
@@ -51,6 +26,7 @@ export class UsersService {
         email: true,
         first_name: true,
         last_name: true,
+        org_name: true,
         role: true,
         is_blocked: true,
         created_at: true,
@@ -79,6 +55,7 @@ export class UsersService {
         email: true,
         first_name: true,
         last_name: true,
+        org_name: true,
         role: true,
         is_blocked: true,
         created_at: true,
@@ -87,10 +64,36 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`User not found`);
     }
 
     return user;
+  }
+
+  /**
+   * Creates a new user with hashed password
+   */
+  async create(createUserDto: CreateUserDto): Promise<SafeUser> {
+    await this.validateEmailUniqueness(createUserDto.email);
+
+    const hashedPassword = await this.hashPassword(createUserDto.password);
+
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          email: createUserDto.email,
+          password: hashedPassword,
+          first_name: createUserDto.first_name,
+          last_name: createUserDto.last_name,
+          org_name: createUserDto.org_name,
+          role: (createUserDto.role as UserRole) || UserRole.CUSTOMER,
+        },
+      });
+
+      return this.excludePassword(user);
+    } catch (error) {
+      throw new BadRequestException('Failed to create user');
+    }
   }
 
   /**
@@ -179,6 +182,7 @@ export class UsersService {
         email: true,
         first_name: true,
         last_name: true,
+        org_name: true,
         role: true,
         is_blocked: true,
         created_at: true,

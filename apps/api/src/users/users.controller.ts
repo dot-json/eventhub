@@ -13,31 +13,37 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/guards/roles.guard';
-import { Roles } from 'src/decorators/roles.decorator';
+import { JwtAuthGuard } from './../guards';
+import { RolesGuard } from './../guards';
+import { Roles } from './../decorators';
 import { UserRole } from 'generated/prisma';
+import { ApiResponse, ResponseBuilder } from '../common';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll() {
+    const users = await this.usersService.findAll();
+    return ResponseBuilder.successWithCount(
+      users,
+      'Users retrieved successfully',
+    );
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     const userId = parseInt(id, 10);
     if (isNaN(userId)) {
       throw new BadRequestException('Invalid user ID format');
     }
-    return this.usersService.findOne(userId);
+    const user = await this.usersService.findOne(userId);
+    return ResponseBuilder.success(user, 'User retrieved successfully');
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
   ) {
@@ -45,18 +51,20 @@ export class UsersController {
     if (isNaN(userId)) {
       throw new BadRequestException('Invalid user ID format');
     }
-    return this.usersService.update(userId, updateUserDto);
+    const user = await this.usersService.update(userId, updateUserDto);
+    return ResponseBuilder.success(user, 'User updated successfully');
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: string) {
+  @HttpCode(HttpStatus.OK)
+  async remove(@Param('id') id: string) {
     const userId = parseInt(id, 10);
     if (isNaN(userId)) {
       throw new BadRequestException('Invalid user ID format');
     }
-    return this.usersService.remove(userId);
+    await this.usersService.remove(userId);
+    return ResponseBuilder.successNoData('User deleted successfully');
   }
 }

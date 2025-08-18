@@ -26,6 +26,10 @@ export class RegisterDto {
   @IsNotEmpty()
   last_name: string;
 
+  @IsString()
+  @IsOptional()
+  org_name?: string;
+
   @IsEnum(UserRole)
   @IsOptional()
   role?: UserRole;
