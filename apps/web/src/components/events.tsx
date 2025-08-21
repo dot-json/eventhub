@@ -1,7 +1,10 @@
 import { SquareArrowOutUpRight } from "lucide-react";
 import { Button } from "./ui/button";
+import { Link } from "react-router";
+import { dateFormat } from "@/lib/utils";
 
 interface MyEventProps {
+  id: number;
   title: string;
   description: string;
   category?: string;
@@ -12,6 +15,7 @@ interface MyEventProps {
 }
 
 export const MyEvent = ({
+  id,
   title,
   description,
   category,
@@ -23,29 +27,37 @@ export const MyEvent = ({
   const shortenDesc = (text: string) => {
     return text.length > 124 ? text.slice(0, 124) + "..." : text;
   };
-  const dateFormat = (date: string) => {
-    return new Date(date).toLocaleDateString();
-  };
 
   return (
-    <div className="flex flex-col gap-3 rounded-md border p-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-        <div>
-          <h2>{title}</h2>
-          {category && (
-            <p className="text-muted-foreground text-sm">{category}</p>
-          )}
+    <div className="bg-secondary flex flex-col gap-1 rounded-2xl p-1 transition-shadow hover:shadow-md">
+      <div className="bg-background flex flex-col gap-3 rounded-xl p-4 shadow-md">
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+          <div>
+            <p className="text-sm">{dateFormat(start_date, end_date)}</p>
+            <h2>{title}</h2>
+            {category && (
+              <p className="text-muted-foreground/75 text-sm">{category}</p>
+            )}
+          </div>
+          <p className="font-semibold"></p>
         </div>
-        <p className="font-semibold">{`${dateFormat(start_date)} - ${dateFormat(end_date)}`}</p>
+        <p>{shortenDesc(description)}</p>
       </div>
-      <p>{shortenDesc(description)}</p>
-      <p className="text-lg font-semibold">
-        Tickets sold: {capacity - tickets_remaining} out of {capacity}
-      </p>
-      <Button className="w-fit">
-        <SquareArrowOutUpRight />
-        View Details
-      </Button>
+      <div className="flex items-center justify-between p-2">
+        <Link
+          to={`/events/${id}`}
+          className="w-fit"
+          state={{ fromLink: "/my-events" }}
+        >
+          <Button className="w-fit">
+            <SquareArrowOutUpRight />
+            View Details
+          </Button>
+        </Link>
+        <p className="text-sm font-semibold sm:text-base">
+          Tickets sold: {capacity - tickets_remaining} out of {capacity}
+        </p>
+      </div>
     </div>
   );
 };

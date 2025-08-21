@@ -87,7 +87,7 @@ const SettingsPage = () => {
           </p>
         </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="flex h-fit flex-col gap-4 rounded-md border p-4">
+          <div className="flex h-fit flex-col gap-4 rounded-2xl border p-4">
             <div>
               <h3>Profile Information</h3>
               <p className="text-muted-foreground text-sm">
@@ -166,7 +166,7 @@ const SettingsPage = () => {
               </Button>
             </form>
           </div>
-          <div className="flex h-fit flex-col gap-4 rounded-md border p-4">
+          <div className="flex h-fit flex-col gap-4 rounded-2xl border p-4">
             <div>
               <h3>Account Security</h3>
               <p className="text-muted-foreground text-sm">

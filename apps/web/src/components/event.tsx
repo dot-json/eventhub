@@ -1,11 +1,23 @@
 import { useEffect } from "react";
-import { Navigate, useParams } from "react-router";
+import { Link, Navigate, useParams } from "react-router";
 import { useEventStore } from "@/stores/eventStore";
-import { Loader2Icon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+  Banknote,
+  CalendarClock,
+  ChevronLeft,
+  Loader2Icon,
+  MapPin,
+  SquarePen,
+  Tags,
+  Users,
+} from "lucide-react";
+import { cn, dateFormat } from "@/lib/utils";
+import { useLocation } from "react-router";
+import { Button } from "./ui/button";
 
 const Event = () => {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const { currentEvent, isLoading, error, fetchEvent } = useEventStore();
 
   useEffect(() => {
@@ -30,19 +42,28 @@ const Event = () => {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 sm:gap-6">
+      {location.state?.fromLink && (
+        <Link to={location.state.fromLink} className="w-fit">
+          <Button>
+            <ChevronLeft /> Back to events
+          </Button>
+        </Link>
+      )}
       <div className="flex justify-between gap-4">
         <div>
           <h1 className="leading-tight">{currentEvent.title}</h1>
+          <p className="font-medium">{currentEvent.organizer?.org_name}</p>
           {currentEvent.category && (
-            <p className="text-muted-foreground font-semibold">
+            <p className="text-muted-foreground mt-1 flex items-center gap-1 text-sm">
+              <Tags className="size-4" />
               {currentEvent.category}
             </p>
           )}
         </div>
         <span
           className={cn(
-            "size-fit rounded-md px-2 py-1 text-lg font-semibold select-none",
+            "size-fit rounded-full px-4 py-2 text-sm font-semibold select-none sm:text-base",
             currentEvent.status === "DRAFT" && "bg-info/20 text-info",
             currentEvent.status === "PUBLISHED" && "bg-success/20 text-success",
             currentEvent.status === "CANCELLED" &&
@@ -52,36 +73,59 @@ const Event = () => {
           {currentEvent.status}
         </span>
       </div>
-
       <p>{currentEvent.description}</p>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <strong>Location:</strong> {currentEvent.location}
+      <div className="grid grid-cols-1 place-items-start gap-4 text-lg lg:grid-cols-2">
+        <div className="flex items-start gap-2">
+          <div className="flex items-center gap-2">
+            <MapPin />
+            <span className="font-semibold">Location:</span>
+          </div>
+          <span>{currentEvent.location}</span>
         </div>
-        <div>
-          <strong>Category:</strong> {currentEvent.category || "N/A"}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <CalendarClock />
+            <span className="font-semibold">Date:</span>
+          </div>
+          <span>
+            {dateFormat(currentEvent.start_date, currentEvent.end_date)}
+          </span>
         </div>
-        <div>
-          <strong>Start Date:</strong>{" "}
-          {new Date(currentEvent.start_date).toLocaleString()}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Users />
+            <span className="font-semibold">Capacity:</span>
+          </div>
+          <span>{currentEvent.capacity}</span>
         </div>
-        <div>
-          <strong>End Date:</strong>{" "}
-          {new Date(currentEvent.end_date).toLocaleString()}
-        </div>
-        <div>
-          <strong>Capacity:</strong> {currentEvent.capacity}
-        </div>
-        <div>
-          <strong>Tickets Remaining:</strong> {currentEvent.tickets_remaining}
-        </div>
-        <div>
-          <strong>Price:</strong> ${currentEvent.ticket_price}
-        </div>
-        <div>
-          <strong>Status:</strong> {currentEvent.status}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Banknote />
+            <span className="font-semibold">Price:</span>
+          </div>
+          <span>${currentEvent.ticket_price}</span>
         </div>
       </div>
+      <div className="flex flex-col gap-3">
+        <h2>Tickets</h2>
+        <div className="flex flex-col gap-1">
+          <p className="text-base sm:text-lg">
+            {`Sold: ${currentEvent.capacity - currentEvent.tickets_remaining} out of ${currentEvent.capacity} (${currentEvent.tickets_remaining} remaining)`}
+          </p>
+          <div className="bg-secondary h-3 w-full rounded-full">
+            <div
+              className="bg-primary relative h-full rounded-full"
+              style={{
+                width: `${((currentEvent.capacity - currentEvent.tickets_remaining) / currentEvent.capacity) * 100}%`,
+              }}
+            ></div>
+          </div>
+        </div>
+      </div>
+      <Button className="w-fit">
+        <SquarePen />
+        Edit Event
+      </Button>
     </div>
   );
 };

@@ -33,7 +33,7 @@ const MyEventsPage = () => {
                 <div className="dot animate-ripple"></div>
                 <span>Live Now</span>
               </h2>
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-6">
                 {groupedMyEvents.live.map((event) => (
                   <MyEvent key={event.id} {...event} />
                 ))}
@@ -49,7 +49,7 @@ const MyEventsPage = () => {
               <AccordionTrigger>
                 Upcoming Events ({groupedMyEvents.upcoming.length})
               </AccordionTrigger>
-              <AccordionContent className="flex flex-col gap-4">
+              <AccordionContent className="flex flex-col gap-6">
                 {groupedMyEvents.upcoming.map((event) => (
                   <MyEvent key={event.id} {...event} />
                 ))}
@@ -59,7 +59,7 @@ const MyEventsPage = () => {
               <AccordionTrigger>
                 Past Events ({groupedMyEvents.past.length})
               </AccordionTrigger>
-              <AccordionContent className="flex flex-col gap-4">
+              <AccordionContent className="flex flex-col gap-6">
                 {groupedMyEvents.past.map((event) => (
                   <MyEvent key={event.id} {...event} />
                 ))}

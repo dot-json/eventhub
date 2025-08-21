@@ -1,4 +1,3 @@
-import Logo from "./icons/logo";
 import { Link } from "react-router";
 import { Button } from "./ui/button";
 import { useAuth, useUser } from "@/hooks/useAuth";
@@ -19,11 +18,21 @@ const Header = () => {
 
   const closeMenu = () => setMenuOpen(false);
 
+  const resolveHomeLink = (): string => {
+    if (isAuthenticated()) {
+      if (isOrganizer) {
+        return "/my-events";
+      }
+      return "/my-tickets";
+    } else {
+      return "/";
+    }
+  };
+
   return (
-    <header className="sticky border-b backdrop-blur-2xl">
+    <header className="sticky top-0 z-40 border-b backdrop-blur-2xl">
       <div className="container mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <Logo className="size-8" />
+        <Link to={resolveHomeLink()} className="flex items-center gap-2">
           <span className="cursor-pointer text-2xl font-semibold select-none">
             EventHub
           </span>
@@ -42,7 +51,7 @@ const Header = () => {
             <PopoverContent align="center" className="mx-4">
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col">
-                  <p className="font-semibold">{`${user?.first_name} ${user?.last_name}`}</p>
+                  <p className="text-lg font-semibold">{`${user?.first_name} ${user?.last_name}`}</p>
                   {user?.org_name && (
                     <p className="text-sm">{user?.org_name}</p>
                   )}
