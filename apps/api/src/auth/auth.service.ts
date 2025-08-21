@@ -13,6 +13,7 @@ import { UserRole } from '../../generated/prisma';
 export interface AuthResponse {
   user: SafeUser;
   access_token: string;
+  refresh_token: string;
 }
 
 @Injectable()
@@ -43,6 +44,7 @@ export class AuthService {
       return {
         user,
         access_token: this.jwtService.sign(payload),
+        refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' }),
       };
     } catch (error) {
       if (error.message.includes('email already exists')) {
@@ -71,6 +73,7 @@ export class AuthService {
     return {
       user,
       access_token: this.jwtService.sign(payload),
+      refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' }),
     };
   }
 
@@ -98,5 +101,32 @@ export class AuthService {
 
   async getProfile(userId: number): Promise<SafeUser> {
     return this.usersService.findOne(userId);
+  }
+
+  async refreshToken(
+    refreshToken: string,
+  ): Promise<Pick<AuthResponse, 'access_token' | 'refresh_token'>> {
+    try {
+      const decoded = this.jwtService.verify(refreshToken) as JwtPayload;
+
+      const user = await this.usersService.findOne(decoded.sub);
+
+      if (!user || user.is_blocked) {
+        throw new UnauthorizedException('Invalid user or account blocked');
+      }
+
+      const payload: JwtPayload = {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+      };
+
+      return {
+        access_token: this.jwtService.sign(payload),
+        refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' }),
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 }

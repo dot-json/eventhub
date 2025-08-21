@@ -44,13 +44,4 @@ export class ResponseBuilder {
       message,
     };
   }
-
-  static error(
-    message: string = 'Operation failed',
-  ): Omit<ApiResponse, 'data'> {
-    return {
-      success: false,
-      message,
-    };
-  }
 }

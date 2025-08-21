@@ -3,10 +3,12 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 import { User, UserRole } from '../../generated/prisma';
 import * as bcrypt from 'bcryptjs';
 
@@ -117,10 +119,6 @@ export class UsersService {
       ...updateUserDto,
     };
 
-    if (updateUserDto.password) {
-      updateData.password = await this.hashPassword(updateUserDto.password);
-    }
-
     if (updateUserDto.role && updateUserDto.role !== UserRole.ADMIN) {
       updateData.role = updateUserDto.role as UserRole;
     }
@@ -134,6 +132,53 @@ export class UsersService {
       return this.excludePassword(user);
     } catch (error) {
       throw new BadRequestException('Failed to update user');
+    }
+  }
+
+  /**
+   * Updates a user's password
+   */
+  async updatePassword(
+    id: number,
+    updatePasswordDto: UpdatePasswordDto,
+  ): Promise<{ message: string }> {
+    if (!id || typeof id !== 'number') {
+      throw new BadRequestException('Invalid user ID');
+    }
+
+    // Find user with password for verification
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await this.validatePassword(
+      updatePasswordDto.current_password,
+      user.password,
+    );
+
+    if (!isCurrentPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Hash new password
+    const hashedNewPassword = await this.hashPassword(
+      updatePasswordDto.new_password,
+    );
+
+    try {
+      await this.prisma.user.update({
+        where: { id },
+        data: { password: hashedNewPassword },
+      });
+
+      return { message: 'Password updated successfully' };
+    } catch (error) {
+      throw new BadRequestException('Failed to update password');
     }
   }
 

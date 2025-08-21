@@ -10,11 +10,6 @@ import { UserRole } from '../../../generated/prisma';
 export class UpdateUserDto {
   @IsString()
   @IsOptional()
-  @MinLength(6)
-  password?: string;
-
-  @IsString()
-  @IsOptional()
   first_name?: string;
 
   @IsString()
