@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { authApi, usersApi, api } from "../api/client";
-import { setupAxiosInterceptors } from "../api/interceptors";
-import { extractErrorMessage } from "../utils/errorHandler";
+import { authApi, usersApi, api } from "@/api/client";
+import { setupAxiosInterceptors } from "@/api/interceptors";
+import { extractErrorMessage } from "@/utils/errorHandler";
 import type {
   User,
   AuthTokens,
@@ -210,11 +210,6 @@ export const useUserStore = create<UserState>()(
       onRehydrateStorage: () => (state) => {
         if (state?.tokens?.access_token) {
           state.setAuthToken(state.tokens.access_token);
-          // Refresh user data on app startup to ensure it's up to date
-          state.refreshUserData().catch(() => {
-            // If this fails, the user might need to log in again
-            console.warn("Failed to refresh user data on startup");
-          });
         }
       },
     },

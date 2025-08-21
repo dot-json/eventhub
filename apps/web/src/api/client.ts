@@ -33,3 +33,15 @@ export const usersApi = {
     passwordData: { current_password: string; new_password: string },
   ) => api.put(`/users/${id}/password`, passwordData),
 };
+
+// Event API calls
+export const eventsApi = {
+  createEvent: (eventData: any) => api.post("/events", eventData),
+
+  getEvent: (id: number) => api.get(`/events/${id}`),
+
+  updateEvent: (id: number, updates: any) =>
+    api.patch(`/events/${id}`, updates),
+
+  deleteEvent: (id: number) => api.delete(`/events/${id}`),
+};

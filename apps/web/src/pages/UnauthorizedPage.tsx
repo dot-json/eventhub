@@ -8,11 +8,9 @@ const UnauthorizedPage = () => {
       <div className="bg-destructive/10 grid place-items-center rounded-full p-3">
         <AlertTriangle className="text-destructive size-10" />
       </div>
-      <h1 className="text-2xl font-semibold">Access Denied</h1>
-      <p className="text-muted-foreground">
-        You don't have permission to access this page.
-      </p>
-      <Link to="/">
+      <h1>Access Denied</h1>
+      <p>You don't have permission to access this page.</p>
+      <Link to="/" className="mt-4">
         <Button>Go Home</Button>
       </Link>
     </div>

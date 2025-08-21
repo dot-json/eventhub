@@ -51,6 +51,40 @@ export class EventsService {
             org_name: true,
           },
         },
+        created_at: true,
+        updated_at: true,
+      },
+    });
+  }
+
+  async findByOrganizer(organizerId: number): Promise<EventSummary[]> {
+    return this.prisma.event.findMany({
+      where: {
+        organizer_id: organizerId,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        category: true,
+        start_date: true,
+        end_date: true,
+        location: true,
+        capacity: true,
+        ticket_price: true,
+        tickets_remaining: true,
+        status: true,
+        organizer: {
+          select: {
+            id: true,
+            org_name: true,
+          },
+        },
+        created_at: true,
+        updated_at: true,
+      },
+      orderBy: {
+        created_at: 'desc',
       },
     });
   }
@@ -75,6 +109,8 @@ export class EventsService {
             org_name: true,
           },
         },
+        created_at: true,
+        updated_at: true,
       },
       where: { id },
     });

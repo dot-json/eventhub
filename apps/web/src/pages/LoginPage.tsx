@@ -13,7 +13,9 @@ import type { SubmitHandler } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, LogIn } from "lucide-react";
+import { extractErrorMessage } from "@/utils/errorHandler";
+import { toastError } from "@/utils/toastWrapper";
 
 type LoginInputs = {
   email: string;
@@ -26,7 +28,7 @@ const LoginPage = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginInputs>();
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, isLoading, clearError } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,7 +40,8 @@ const LoginPage = () => {
       await login(data);
       navigate("/");
     } catch (error) {
-      console.log(error);
+      const msg = extractErrorMessage(error);
+      toastError(msg);
     }
   };
 
@@ -76,7 +79,7 @@ const LoginPage = () => {
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
-                  placeholder="Enter your password"
+                  placeholder="password123"
                   type="password"
                   {...register("password", {
                     required: "Password is required",
@@ -94,7 +97,11 @@ const LoginPage = () => {
               </div>
               <div className="mt-2 grid gap-2">
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading && <Loader2Icon className="animate-spin" />}
+                  {isLoading ? (
+                    <Loader2Icon className="animate-spin" />
+                  ) : (
+                    <LogIn />
+                  )}
                   {isLoading ? "Signing in..." : "Sign in"}
                 </Button>
                 <div className="text-muted-foreground text-center text-sm">
@@ -104,11 +111,6 @@ const LoginPage = () => {
                   </Link>
                 </div>
               </div>
-              {error && (
-                <div className="bg-destructive/15 text-destructive rounded-md p-3 text-sm">
-                  {error}
-                </div>
-              )}
             </div>
           </form>
         </CardContent>

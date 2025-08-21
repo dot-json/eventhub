@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { ThemeProvider } from "@/components/theme-provider";
 import Layout from "./components/layout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -9,6 +9,8 @@ import RegisterPage from "./pages/RegisterPage";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import SettingsPage from "./pages/SettingsPage";
 import MyEventsPage from "./pages/MyEventsPage";
+import Event from "./components/event";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
   return (
@@ -49,7 +51,10 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/events/:id" element={<Event />} />
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
+            <Route path="/404" element={<NotFoundPage />} />
+            <Route path="*" element={<Navigate to="/404" replace />} />
           </Routes>
         </Layout>
       </BrowserRouter>

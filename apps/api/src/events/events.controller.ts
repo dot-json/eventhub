@@ -52,6 +52,31 @@ export class EventsController {
     }
   }
 
+  @Get('my-events')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORGANIZER, UserRole.ADMIN)
+  async findMyEvents(@Request() req: RequestType & { user: { id: number } }) {
+    try {
+      const events = await this.eventsService.findByOrganizer(req.user.id);
+      return ResponseBuilder.successWithCount(
+        events,
+        'My events retrieved successfully',
+      );
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException ||
+        error instanceof ConflictException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        error.message || 'Failed to retrieve my events',
+      );
+    }
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     try {

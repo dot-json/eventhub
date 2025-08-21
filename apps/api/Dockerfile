@@ -32,6 +32,7 @@ RUN pnpx prisma generate
 WORKDIR /app
 
 RUN turbo build --filter=@repo/api
+RUN cp -r /app/apps/api/generated /app/apps/api/dist/
 RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm prune --prod --no-optional
 RUN rm -rf ./**/*/src
 

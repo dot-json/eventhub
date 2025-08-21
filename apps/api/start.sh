@@ -43,7 +43,7 @@ if [ $? -eq 0 ]; then
   if [ $? -eq 0 ]; then
     log "Database schema updated successfully!"
     log "Starting NestJS application..."
-    exec node dist/main
+    exec node dist/src/main
   else
     log "Schema push failed!"
     exit 1

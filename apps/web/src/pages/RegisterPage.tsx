@@ -10,7 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
-import { Loader2Icon } from "lucide-react";
+import { extractErrorMessage } from "@/utils/errorHandler";
+import { toastError } from "@/utils/toastWrapper";
+import { Loader2Icon, UserRoundPen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
@@ -26,7 +28,7 @@ type RegisterInputs = {
 };
 
 const RegisterPage = () => {
-  const { isLoading, error, register: registerUser, clearError } = useAuth();
+  const { isLoading, register: registerUser, clearError } = useAuth();
   const [selectedRole, setSelectedRole] = useState<"CUSTOMER" | "ORGANIZER">(
     "CUSTOMER",
   );
@@ -57,7 +59,8 @@ const RegisterPage = () => {
       await registerUser(registerData);
       navigate("/");
     } catch (error) {
-      console.log(error);
+      const msg = extractErrorMessage(error);
+      toastError(msg);
     }
   };
 
@@ -225,7 +228,11 @@ const RegisterPage = () => {
               </div>
               <div className="mt-2 grid gap-2">
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading && <Loader2Icon className="animate-spin" />}
+                  {isLoading ? (
+                    <Loader2Icon className="animate-spin" />
+                  ) : (
+                    <UserRoundPen />
+                  )}
                   {isLoading ? "Creating account..." : "Create account"}
                 </Button>
                 <div className="text-muted-foreground text-center text-sm">
@@ -235,11 +242,6 @@ const RegisterPage = () => {
                   </Link>
                 </div>
               </div>
-              {error && (
-                <div className="bg-destructive/15 text-destructive rounded-md p-3 text-sm">
-                  {error}
-                </div>
-              )}
             </div>
           </form>
         </CardContent>

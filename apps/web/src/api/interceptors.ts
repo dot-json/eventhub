@@ -45,7 +45,18 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Don't try to refresh tokens for auth endpoints
+    const requestUrl = originalRequest?.url || "";
+    const isAuthEndpoint =
+      requestUrl.includes("/auth/login") ||
+      requestUrl.includes("/auth/register");
+
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !isAuthEndpoint
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -56,7 +67,9 @@ api.interceptors.response.use(
 
         const tokens = getTokens?.();
         if (!tokens?.refresh_token) {
-          throw new Error("No refresh token available");
+          console.warn("No refresh token available, redirecting to login");
+          handleLogout?.();
+          return Promise.reject(new Error("No refresh token available"));
         }
 
         refreshTokenPromise = authApi.refresh(tokens.refresh_token);
