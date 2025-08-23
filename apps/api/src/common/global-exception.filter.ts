@@ -33,8 +33,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }
     }
 
-    const errorResponse: Omit<ApiResponse, 'data'> = {
-      success: false,
+    const errorResponse = {
       message,
     };
 

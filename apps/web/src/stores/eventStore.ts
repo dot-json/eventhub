@@ -1,20 +1,56 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { eventsApi, api } from "@/api/client";
-import { extractErrorMessage } from "@/utils/errorHandler";
+import { createAppError, type AppError } from "@/utils/errorHandler";
 
 // Event types based on the backend schema
+export type EventCategory =
+  | "MUSIC"
+  | "SPORTS"
+  | "ART"
+  | "CONFERENCE"
+  | "WORKSHOP"
+  | "SEMINAR"
+  | "EXHIBITION"
+  | "CHARITY"
+  | "THEATRE"
+  | "PARTY"
+  | "FAIR"
+  | "FASHION"
+  | "COMEDY"
+  | "FILM"
+  | "CULINARY";
+
+export const EVENT_CATEGORIES: Array<{ value: EventCategory; label: string }> =
+  [
+    { value: "MUSIC", label: "Music" },
+    { value: "SPORTS", label: "Sports" },
+    { value: "ART", label: "Art" },
+    { value: "CONFERENCE", label: "Conference" },
+    { value: "WORKSHOP", label: "Workshop" },
+    { value: "SEMINAR", label: "Seminar" },
+    { value: "EXHIBITION", label: "Exhibition" },
+    { value: "CHARITY", label: "Charity" },
+    { value: "THEATRE", label: "Theatre" },
+    { value: "PARTY", label: "Party" },
+    { value: "FAIR", label: "Fair" },
+    { value: "FASHION", label: "Fashion" },
+    { value: "COMEDY", label: "Comedy" },
+    { value: "FILM", label: "Film" },
+    { value: "CULINARY", label: "Culinary" },
+  ];
+
 export interface Event {
   id: number;
   title: string;
   description: string;
-  category?: string;
-  start_date: string; // ISO date string
-  end_date: string; // ISO date string
+  category?: EventCategory;
+  start_date: string;
+  end_date: string;
   location: string;
   capacity: number;
   ticket_price: number;
-  tickets_remaining: number;
+  tickets_sold: number;
   status: "DRAFT" | "PUBLISHED" | "CANCELLED";
   organizer_id: number;
   created_at: string;
@@ -30,7 +66,7 @@ export interface Event {
 export interface CreateEventData {
   title: string;
   description: string;
-  category?: string;
+  category?: EventCategory;
   startDate: Date | string;
   endDate: Date | string;
   location: string;
@@ -38,10 +74,12 @@ export interface CreateEventData {
   ticket_price: number;
 }
 
-export interface UpdateEventData extends Partial<CreateEventData> {}
+export interface UpdateEventData extends Partial<CreateEventData> {
+  status?: "DRAFT" | "PUBLISHED" | "CANCELLED";
+}
 
 export interface EventFilters {
-  category?: string;
+  category?: EventCategory;
   location?: string;
   startDate?: string;
   endDate?: string;
@@ -52,6 +90,7 @@ export interface GroupedEvents {
   live: Event[];
   upcoming: Event[];
   past: Event[];
+  drafts: Event[];
 }
 
 // Helper functions for event categorization
@@ -78,6 +117,7 @@ const groupEventsByStatus = (events: Event[]): GroupedEvents => {
   const live: Event[] = [];
   const upcoming: Event[] = [];
   const past: Event[] = [];
+  const drafts: Event[] = [];
 
   events.forEach((event) => {
     if (isEventLive(event)) {
@@ -86,6 +126,8 @@ const groupEventsByStatus = (events: Event[]): GroupedEvents => {
       upcoming.push(event);
     } else if (isEventPast(event)) {
       past.push(event);
+    } else if (event.status === "DRAFT") {
+      drafts.push(event);
     }
   });
 
@@ -100,10 +142,14 @@ const groupEventsByStatus = (events: Event[]): GroupedEvents => {
   );
   past.sort(
     (a, b) => new Date(b.end_date).getTime() - new Date(a.end_date).getTime(),
-  ); // Most recent first
+  );
 
-  return { live, upcoming, past };
+  return { live, upcoming, past, drafts };
 };
+
+// Return types for store functions
+export type StoreResult<T> = (T & { message: string }) | { error: AppError };
+export type StoreVoidResult = { message: string } | { error: AppError };
 
 interface EventState {
   // State
@@ -113,15 +159,20 @@ interface EventState {
   isCreating: boolean;
   isUpdating: boolean;
   isDeleting: boolean;
-  error: string | null;
+  error: AppError | null;
 
   // Actions
-  fetchEvents: (filters?: EventFilters) => Promise<void>;
-  fetchEvent: (id: number) => Promise<Event | null>;
-  fetchMyEvents: () => Promise<void>;
-  createEvent: (eventData: CreateEventData) => Promise<Event | null>;
-  updateEvent: (id: number, updates: UpdateEventData) => Promise<Event | null>;
-  deleteEvent: (id: number) => Promise<boolean>;
+  fetchEvents: (filters?: EventFilters) => Promise<StoreVoidResult>;
+  fetchEvent: (id: number) => Promise<StoreResult<Event>>;
+  fetchMyEvents: () => Promise<StoreVoidResult>;
+  createEvent: (
+    eventData: CreateEventData,
+  ) => Promise<StoreResult<{ event: Event }>>;
+  updateEvent: (
+    id: number,
+    updates: UpdateEventData,
+  ) => Promise<StoreResult<{ event: Event }>>;
+  deleteEvent: (id: number) => Promise<StoreVoidResult>;
   clearError: () => void;
   clearCurrentEvent: () => void;
 
@@ -169,11 +220,17 @@ export const useEventStore = create<EventState>()(
             events,
             isLoading: false,
           });
+
+          return { events, message: response.data.message };
         } catch (error) {
+          const errorObj = createAppError(error);
           set({
             isLoading: false,
-            error: extractErrorMessage(error),
+            error: errorObj,
           });
+          return {
+            error: errorObj,
+          };
         }
       },
 
@@ -191,11 +248,14 @@ export const useEventStore = create<EventState>()(
 
           return event;
         } catch (error) {
+          const errorObj = createAppError(error);
           set({
             isLoading: false,
-            error: extractErrorMessage(error),
+            error: errorObj,
           });
-          return null;
+          return {
+            error: errorObj,
+          };
         }
       },
 
@@ -210,11 +270,17 @@ export const useEventStore = create<EventState>()(
             events,
             isLoading: false,
           });
+
+          return { events, message: response.data.message };
         } catch (error) {
+          const errorObj = createAppError(error);
           set({
             isLoading: false,
-            error: extractErrorMessage(error),
+            error: errorObj,
           });
+          return {
+            error: errorObj,
+          };
         }
       },
 
@@ -231,13 +297,19 @@ export const useEventStore = create<EventState>()(
             isCreating: false,
           }));
 
-          return newEvent;
+          return {
+            event: newEvent,
+            message: response.data.message,
+          };
         } catch (error) {
+          const errorObj = createAppError(error);
           set({
             isCreating: false,
-            error: extractErrorMessage(error),
+            error: errorObj,
           });
-          return null;
+          return {
+            error: errorObj,
+          };
         }
       },
 
@@ -258,13 +330,19 @@ export const useEventStore = create<EventState>()(
             isUpdating: false,
           }));
 
-          return updatedEvent;
+          return {
+            event: updatedEvent,
+            message: response.data.message,
+          };
         } catch (error) {
+          const errorObj = createAppError(error);
           set({
             isUpdating: false,
-            error: extractErrorMessage(error),
+            error: errorObj,
           });
-          return null;
+          return {
+            error: errorObj,
+          };
         }
       },
 
@@ -272,7 +350,7 @@ export const useEventStore = create<EventState>()(
         try {
           set({ isDeleting: true, error: null });
 
-          await eventsApi.deleteEvent(id);
+          const response = await eventsApi.deleteEvent(id);
 
           // Remove the event from events array
           set((state) => ({
@@ -282,13 +360,16 @@ export const useEventStore = create<EventState>()(
             isDeleting: false,
           }));
 
-          return true;
+          return { message: response.data.message };
         } catch (error) {
+          const errorObj = createAppError(error);
           set({
             isDeleting: false,
-            error: extractErrorMessage(error),
+            error: errorObj,
           });
-          return false;
+          return {
+            error: errorObj,
+          };
         }
       },
 

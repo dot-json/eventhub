@@ -102,11 +102,6 @@ export class UsersService {
    * Updates a user by ID
    */
   async update(id: number, updateUserDto: UpdateUserDto): Promise<SafeUser> {
-    if (!id || typeof id !== 'number') {
-      throw new BadRequestException('Invalid user ID');
-    }
-
-    // Check if user exists
     const existingUser = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -139,14 +134,9 @@ export class UsersService {
    * Updates a user's password
    */
   async updatePassword(
-    id: number,
     updatePasswordDto: UpdatePasswordDto,
+    id: number,
   ): Promise<{ message: string }> {
-    if (!id || typeof id !== 'number') {
-      throw new BadRequestException('Invalid user ID');
-    }
-
-    // Find user with password for verification
     const user = await this.prisma.user.findUnique({
       where: { id },
     });

@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { authApi, usersApi, api } from "@/api/client";
 import { setupAxiosInterceptors } from "@/api/interceptors";
-import { extractErrorMessage } from "@/utils/errorHandler";
+import { createAppError, type AppError } from "@/utils/errorHandler";
 import type {
   User,
   AuthTokens,
@@ -10,22 +10,32 @@ import type {
   RegisterData,
 } from "../types/user";
 
+// Return types for store functions
+export type StoreResult<T> = (T & { message: string }) | { error: AppError };
+export type StoreVoidResult = { message: string } | { error: AppError };
+
 interface UserState {
   user: User | null;
   tokens: AuthTokens | null;
   isLoading: boolean;
-  error: string | null;
+  error: AppError | null;
 
   // Actions
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  login: (
+    credentials: LoginCredentials,
+  ) => Promise<StoreResult<{ user: User; tokens: AuthTokens }>>;
+  register: (
+    data: RegisterData,
+  ) => Promise<StoreResult<{ user: User; tokens: AuthTokens }>>;
   logout: () => void;
-  updateProfile: (updates: Partial<User>) => Promise<void>;
+  updateProfile: (
+    updates: Partial<User>,
+  ) => Promise<StoreResult<{ user: User }>>;
   updatePassword: (passwordData: {
     current_password: string;
     new_password: string;
-  }) => Promise<void>;
-  refreshUserData: () => Promise<void>;
+  }) => Promise<StoreVoidResult>;
+  refreshUserData: () => Promise<StoreVoidResult>;
   clearError: () => void;
 
   // Utils
@@ -42,7 +52,11 @@ export const useUserStore = create<UserState>()(
         () => get().getTokens(),
         (tokens) => get().updateTokens(tokens),
         () => get().logout(),
-        () => get().refreshUserData(),
+        async () => {
+          await get().refreshUserData();
+          // For interceptor, we don't need to handle the error here
+          // The store will handle it internally
+        },
       );
 
       return {
@@ -68,22 +82,21 @@ export const useUserStore = create<UserState>()(
             });
 
             get().setAuthToken(access_token);
+
+            return {
+              user,
+              tokens,
+              message: response.data.message,
+            };
           } catch (error: any) {
-            let errorMessage = extractErrorMessage(error);
-
-            // Override with more specific messages for common scenarios
-            if (error.response?.status === 401) {
-              errorMessage = "Invalid email or password";
-            } else if (error.response?.status === 429) {
-              errorMessage = "Too many login attempts. Please try again later";
-            }
-
+            const errorObj = createAppError(error);
             set({
               isLoading: false,
-              error: errorMessage,
+              error: errorObj,
             });
-
-            return Promise.reject(new Error(errorMessage));
+            return {
+              error: errorObj,
+            };
           }
         },
 
@@ -103,12 +116,21 @@ export const useUserStore = create<UserState>()(
             });
 
             get().setAuthToken(access_token);
+
+            return {
+              user,
+              tokens,
+              message: response.data.message,
+            };
           } catch (error: any) {
+            const errorObj = createAppError(error);
             set({
               isLoading: false,
-              error: error.response?.data?.message || "Registration failed",
+              error: errorObj,
             });
-            throw error;
+            return {
+              error: errorObj,
+            };
           }
         },
 
@@ -128,18 +150,26 @@ export const useUserStore = create<UserState>()(
 
             if (!user) throw new Error("No user logged in");
 
-            const response = await usersApi.updateProfile(user.id, updates);
+            const response = await usersApi.updateProfile(updates);
 
             set({
               user: { ...user, ...response.data.data },
               isLoading: false,
             });
-          } catch (error: any) {
+
+            return {
+              user: { ...user, ...response.data.data },
+              message: response.data.message,
+            };
+          } catch (error) {
+            const errorObj = createAppError(error);
             set({
               isLoading: false,
-              error: extractErrorMessage(error),
+              error: errorObj,
             });
-            throw error;
+            return {
+              error: errorObj,
+            };
           }
         },
 
@@ -153,31 +183,44 @@ export const useUserStore = create<UserState>()(
 
             if (!user) throw new Error("No user logged in");
 
-            await usersApi.updatePassword(user.id, passwordData);
+            const response = await usersApi.updatePassword(passwordData);
 
             set({ isLoading: false });
+
+            return { message: response.data.message };
           } catch (error: any) {
+            const errorObj = createAppError(error);
             set({
               isLoading: false,
-              error: extractErrorMessage(error),
+              error: errorObj,
             });
-            throw error;
+            return {
+              error: errorObj,
+            };
           }
         },
 
         clearError: () => set({ error: null }),
 
-        refreshUserData: async () => {
+        refreshUserData: async (): Promise<StoreVoidResult> => {
           try {
             const { user, isAuthenticated } = get();
-            if (!isAuthenticated() || !user) return;
+            if (!isAuthenticated() || !user) {
+              return { message: "No authenticated user to refresh" };
+            }
 
             const response = await api.get("/auth/profile");
             const updatedUser = response.data.data;
 
             set({ user: updatedUser });
+
+            return { message: response.data.message };
           } catch (error: any) {
             console.warn("Failed to refresh user data:", error.message);
+            const errorObj = createAppError(error);
+            return {
+              error: errorObj,
+            };
           }
         },
 

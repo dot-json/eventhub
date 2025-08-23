@@ -2,6 +2,7 @@ import { SquareArrowOutUpRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link } from "react-router";
 import { dateFormat } from "@/lib/utils";
+import { EVENT_CATEGORIES } from "@/stores/eventStore";
 
 interface MyEventProps {
   id: number;
@@ -11,7 +12,7 @@ interface MyEventProps {
   start_date: string;
   end_date: string;
   capacity: number;
-  tickets_remaining: number;
+  tickets_sold: number;
 }
 
 export const MyEvent = ({
@@ -22,10 +23,15 @@ export const MyEvent = ({
   start_date,
   end_date,
   capacity,
-  tickets_remaining,
+  tickets_sold,
 }: MyEventProps) => {
   const shortenDesc = (text: string) => {
     return text.length > 124 ? text.slice(0, 124) + "..." : text;
+  };
+  const getCategoryLabel = (category?: string) => {
+    if (!category) return "";
+    const categoryItem = EVENT_CATEGORIES.find((cat) => cat.value === category);
+    return categoryItem ? categoryItem.label : category;
   };
 
   return (
@@ -36,14 +42,16 @@ export const MyEvent = ({
             <p className="text-sm">{dateFormat(start_date, end_date)}</p>
             <h2>{title}</h2>
             {category && (
-              <p className="text-muted-foreground/75 text-sm">{category}</p>
+              <p className="text-muted-foreground/75 text-sm">
+                {getCategoryLabel(category)}
+              </p>
             )}
           </div>
           <p className="font-semibold"></p>
         </div>
         <p>{shortenDesc(description)}</p>
       </div>
-      <div className="flex items-center justify-between p-2">
+      <div className="flex items-center justify-between gap-4 p-2">
         <Link
           to={`/events/${id}`}
           className="w-fit"
@@ -55,7 +63,7 @@ export const MyEvent = ({
           </Button>
         </Link>
         <p className="text-sm font-semibold sm:text-base">
-          Tickets sold: {capacity - tickets_remaining} out of {capacity}
+          {capacity - tickets_sold} tickets left
         </p>
       </div>
     </div>

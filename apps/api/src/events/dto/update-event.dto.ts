@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -6,37 +6,68 @@ import {
   IsOptional,
   IsDate,
   IsInt,
+  IsEnum,
+  IsNumber,
+  Min,
+  MinLength,
 } from 'class-validator';
+import { $Enums } from 'generated/prisma';
 
 export class UpdateEventDto {
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
   @MaxLength(128)
-  title: string;
+  title?: string;
 
-  @IsNotEmpty()
-  @IsString()
-  description: string;
-
-  @IsString()
   @IsOptional()
-  category?: string;
-
-  @Type(() => Date)
-  @IsDate()
-  startDate: Date;
-
-  @Type(() => Date)
-  @IsDate()
-  endDate: Date;
-
   @IsNotEmpty()
   @IsString()
-  location: string;
+  @MinLength(10)
+  @MaxLength(1000)
+  description?: string;
 
-  @IsInt()
-  capacity: number;
+  @IsOptional()
+  @IsEnum($Enums.EventCategory)
+  category?: $Enums.EventCategory;
 
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  startDate?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  endDate?: Date;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  location?: string;
+
+  @IsOptional()
   @IsInt()
-  ticket_price: number;
+  @Min(1, { message: 'Capacity must be at least 1' })
+  capacity?: number;
+
+  @IsOptional()
+  @IsEnum($Enums.EventStatus)
+  status?: $Enums.EventStatus;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === null || value === undefined || value === '') return undefined;
+    const num = parseFloat(value);
+    return isNaN(num) ? value : num;
+  })
+  @IsNumber(
+    { maxDecimalPlaces: 2 },
+    {
+      message:
+        'Ticket price must be a valid number with up to 2 decimal places',
+    },
+  )
+  @Min(0, { message: 'Ticket price must be greater than or equal to 0' })
+  ticket_price?: number;
 }

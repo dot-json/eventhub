@@ -21,6 +21,24 @@ enum EventStatus {
   CANCELLED
 }
 
+enum EventCategory {
+  MUSIC
+  SPORTS
+  ART
+  CONFERENCE
+  WORKSHOP
+  SEMINAR
+  EXHIBITION
+  CHARITY
+  THEATRE
+  PARTY
+  FAIR
+  FASHION
+  COMEDY
+  FILM
+  CULINARY
+}
+
 model User {
   id                  Int         @id @default(autoincrement())
   email               String      @unique
@@ -43,13 +61,13 @@ model Event {
   id                  Int          @id @default(autoincrement())
   title               String
   description         String
-  category            String?
+  category            EventCategory?
   start_date          DateTime
   end_date            DateTime
   location            String
   capacity            Int
-  ticket_price        Int
-  tickets_remaining   Int
+  ticket_price        Decimal       @db.Decimal(10, 2)
+  tickets_sold        Int
   status              EventStatus   @default(DRAFT)
   organizer_id        Int
   created_at          DateTime      @default(now())

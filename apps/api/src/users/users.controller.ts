@@ -15,6 +15,7 @@ import {
   UnauthorizedException,
   ConflictException,
   InternalServerErrorException,
+  Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -24,6 +25,7 @@ import { RolesGuard } from './../guards';
 import { Roles } from './../decorators';
 import { UserRole } from 'generated/prisma';
 import { ResponseBuilder } from '../common';
+import { Request as RequestType } from 'express';
 
 @Controller('users')
 export class UsersController {
@@ -77,17 +79,14 @@ export class UsersController {
     }
   }
 
-  @Patch(':id')
+  @Patch()
+  @UseGuards(JwtAuthGuard)
   async update(
-    @Param('id') id: string,
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
+    @Request() req: RequestType & { user: { id: number } },
   ) {
     try {
-      const userId = parseInt(id, 10);
-      if (isNaN(userId)) {
-        throw new BadRequestException('Invalid user ID format');
-      }
-      const user = await this.usersService.update(userId, updateUserDto);
+      const user = await this.usersService.update(req.user.id, updateUserDto);
       return ResponseBuilder.success(user, 'User updated successfully');
     } catch (error) {
       if (
@@ -104,21 +103,17 @@ export class UsersController {
     }
   }
 
-  @Put(':id/password')
+  @Put('password')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async updatePassword(
-    @Param('id') id: string,
     @Body(ValidationPipe) updatePasswordDto: UpdatePasswordDto,
+    @Request() req: RequestType & { user: { id: number } },
   ) {
     try {
-      const userId = parseInt(id, 10);
-      if (isNaN(userId)) {
-        throw new BadRequestException('Invalid user ID format');
-      }
       const result = await this.usersService.updatePassword(
-        userId,
         updatePasswordDto,
+        req.user.id,
       );
       return ResponseBuilder.success(result, 'Password updated successfully');
     } catch (error) {

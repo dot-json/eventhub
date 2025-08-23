@@ -14,7 +14,6 @@ import { Link, useNavigate } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { Loader2Icon, LogIn } from "lucide-react";
-import { extractErrorMessage } from "@/utils/errorHandler";
 import { toastError } from "@/utils/toastWrapper";
 
 type LoginInputs = {
@@ -36,12 +35,12 @@ const LoginPage = () => {
   }, [clearError]);
 
   const onSubmit: SubmitHandler<LoginInputs> = async (data) => {
-    try {
-      await login(data);
+    const result = await login(data);
+
+    if ("error" in result) {
+      toastError(result.error.message);
+    } else {
       navigate("/");
-    } catch (error) {
-      const msg = extractErrorMessage(error);
-      toastError(msg);
     }
   };
 

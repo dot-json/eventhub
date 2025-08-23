@@ -1,5 +1,4 @@
 export interface ApiResponse<T = any> {
-  success: boolean;
   message: string;
   data?: T;
   count?: number;
@@ -18,7 +17,6 @@ export class ResponseBuilder {
     message: string = 'Operation successful',
   ): ApiResponse<T> {
     return {
-      success: true,
       message,
       data,
     };
@@ -29,7 +27,6 @@ export class ResponseBuilder {
     message: string = 'Operation successful',
   ): ApiResponse<T[]> & { count: number } {
     return {
-      success: true,
       message,
       data,
       count: data.length,
@@ -40,7 +37,6 @@ export class ResponseBuilder {
     message: string = 'Operation successful',
   ): Omit<ApiResponse, 'data'> {
     return {
-      success: true,
       message,
     };
   }

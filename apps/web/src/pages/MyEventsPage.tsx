@@ -5,8 +5,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import { useEventStore } from "@/stores/eventStore";
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, Plus } from "lucide-react";
 import { useEffect } from "react";
 
 const MyEventsPage = () => {
@@ -20,10 +21,16 @@ const MyEventsPage = () => {
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
-      <h1>My Events</h1>
+      <div className="flex items-center justify-between">
+        <h1>My Events</h1>
+        <Button>
+          <Plus />
+          Create Event
+        </Button>
+      </div>
 
       {isLoading && <Loader2Icon className="mx-auto animate-spin" />}
-      {error && <div className="text-red-500">Error: {error}</div>}
+      {error && <div className="text-destructive">Error: {error.message}</div>}
 
       {!isLoading && !error && (
         <>
@@ -61,6 +68,16 @@ const MyEventsPage = () => {
               </AccordionTrigger>
               <AccordionContent className="flex flex-col gap-6">
                 {groupedMyEvents.past.map((event) => (
+                  <MyEvent key={event.id} {...event} />
+                ))}
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-3">
+              <AccordionTrigger>
+                Drafts ({groupedMyEvents.drafts.length})
+              </AccordionTrigger>
+              <AccordionContent className="flex flex-col gap-6">
+                {groupedMyEvents.drafts.map((event) => (
                   <MyEvent key={event.id} {...event} />
                 ))}
               </AccordionContent>

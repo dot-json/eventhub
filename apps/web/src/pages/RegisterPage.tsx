@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
-import { extractErrorMessage } from "@/utils/errorHandler";
 import { toastError } from "@/utils/toastWrapper";
 import { Loader2Icon, UserRoundPen } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -45,22 +44,22 @@ const RegisterPage = () => {
   }, [clearError]);
 
   const onSubmit: SubmitHandler<RegisterInputs> = async (data) => {
-    try {
-      const registerData = {
-        email: data.email,
-        password: data.password,
-        first_name: data.firstName,
-        last_name: data.lastName,
-        role: selectedRole,
-        ...(selectedRole === "ORGANIZER" &&
-          data.orgName && { org_name: data.orgName }),
-      };
+    const registerData = {
+      email: data.email,
+      password: data.password,
+      first_name: data.firstName,
+      last_name: data.lastName,
+      role: selectedRole,
+      ...(selectedRole === "ORGANIZER" &&
+        data.orgName && { org_name: data.orgName }),
+    };
 
-      await registerUser(registerData);
+    const result = await registerUser(registerData);
+
+    if (result && "error" in result) {
+      toastError(result.error.message);
+    } else {
       navigate("/");
-    } catch (error) {
-      const msg = extractErrorMessage(error);
-      toastError(msg);
     }
   };
 

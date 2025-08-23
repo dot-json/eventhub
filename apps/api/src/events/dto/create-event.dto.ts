@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -6,7 +6,10 @@ import {
   IsOptional,
   IsDate,
   IsInt,
+  IsEnum,
+  IsDecimal,
 } from 'class-validator';
+import { $Enums } from 'generated/prisma';
 
 export class CreateEventDto {
   @IsNotEmpty()
@@ -18,9 +21,9 @@ export class CreateEventDto {
   @IsString()
   description: string;
 
-  @IsString()
+  @IsEnum($Enums.EventCategory)
   @IsOptional()
-  category?: string;
+  category?: $Enums.EventCategory;
 
   @Type(() => Date)
   @IsDate()
@@ -37,6 +40,9 @@ export class CreateEventDto {
   @IsInt()
   capacity: number;
 
-  @IsInt()
+  @IsDecimal(
+    { decimal_digits: '0,2' },
+    { message: 'Invalid ticket price format' },
+  )
   ticket_price: number;
 }

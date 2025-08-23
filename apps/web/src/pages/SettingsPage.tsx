@@ -6,7 +6,6 @@ import { Loader2Icon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
 import { toastError, toastSuccess } from "@/utils/toastWrapper";
-import { extractErrorMessage } from "@/utils/errorHandler";
 
 type UpdateProfileInput = {
   email: string;
@@ -21,8 +20,7 @@ type UpdatePasswordInput = {
 };
 
 const SettingsPage = () => {
-  const { user, updateProfile, updatePassword, error, clearError, isLoading } =
-    useUser();
+  const { user, updateProfile, updatePassword, isLoading } = useUser();
 
   const {
     register: registerUpdateProfile,
@@ -47,32 +45,33 @@ const SettingsPage = () => {
     ) {
       return;
     }
-    try {
-      await updateProfile({
-        email: data.email,
-        first_name: data.firstName,
-        last_name: data.lastName,
-      });
-      toastSuccess("Profile updated successfully");
-    } catch (_error) {
-      const msg = extractErrorMessage(_error);
-      toastError(msg);
+
+    const result = await updateProfile({
+      email: data.email,
+      first_name: data.firstName,
+      last_name: data.lastName,
+    });
+
+    if ("error" in result) {
+      toastError(result.error.message);
+    } else {
+      toastSuccess(result.message);
     }
   };
 
   const onUpdatePasswordSubmit: SubmitHandler<UpdatePasswordInput> = async (
     data,
   ) => {
-    try {
-      await updatePassword({
-        current_password: data.currentPassword,
-        new_password: data.newPassword,
-      });
-      toastSuccess("Password updated successfully");
+    const result = await updatePassword({
+      current_password: data.currentPassword,
+      new_password: data.newPassword,
+    });
+
+    if ("error" in result) {
+      toastError(result.error.message);
+    } else {
+      toastSuccess(result.message);
       resetUpdatePassword();
-    } catch (_error) {
-      const msg = extractErrorMessage(_error);
-      toastError(msg);
     }
   };
 
@@ -188,7 +187,6 @@ const SettingsPage = () => {
                   })}
                   onChange={(e) => {
                     registerUpdatePassword("currentPassword").onChange(e);
-                    if (error) clearError();
                   }}
                 />
                 {passwordErrors.currentPassword && (

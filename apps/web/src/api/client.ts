@@ -25,13 +25,12 @@ export const authApi = {
 
 // Users API calls
 export const usersApi = {
-  updateProfile: (id: number, updates: any) =>
-    api.patch(`/users/${id}`, updates),
+  updateProfile: (updates: any) => api.patch(`/users`, updates),
 
-  updatePassword: (
-    id: number,
-    passwordData: { current_password: string; new_password: string },
-  ) => api.put(`/users/${id}/password`, passwordData),
+  updatePassword: (passwordData: {
+    current_password: string;
+    new_password: string;
+  }) => api.put(`/users/password`, passwordData),
 };
 
 // Event API calls

@@ -1,4 +1,9 @@
-import { PrismaClient, UserRole, EventStatus } from '../generated/prisma';
+import {
+  PrismaClient,
+  UserRole,
+  EventStatus,
+  $Enums,
+} from '../generated/prisma';
 import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -6,19 +11,22 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('[SEEDER] Starting database seeding...');
 
-  // Clear existing data (optional - comment out if you want to keep existing data)
   console.log('[SEEDER] Cleaning existing data...');
   await prisma.ticket.deleteMany();
   await prisma.event.deleteMany();
   await prisma.user.deleteMany();
 
-  // Helper function to hash passwords
+  // Reset auto-increment sequences to start from 1
+  console.log('[SEEDER] Resetting ID sequences...');
+  await prisma.$executeRaw`ALTER SEQUENCE users_id_seq RESTART WITH 1`;
+  await prisma.$executeRaw`ALTER SEQUENCE events_id_seq RESTART WITH 1`;
+  await prisma.$executeRaw`ALTER SEQUENCE tickets_id_seq RESTART WITH 1`;
+
   const hashPassword = async (password: string): Promise<string> => {
     const saltRounds = 12;
     return bcrypt.hash(password, saltRounds);
   };
 
-  // Create Admin User
   console.log('[SEEDER] Creating admin user...');
   const admin = await prisma.user.create({
     data: {
@@ -29,9 +37,7 @@ async function main() {
       role: UserRole.ADMIN,
     },
   });
-  console.log(`[SEEDER] Admin created: ${admin.email}`);
 
-  // Create Organizer User
   console.log('[SEEDER] Creating organizer user...');
   const organizer = await prisma.user.create({
     data: {
@@ -43,9 +49,7 @@ async function main() {
       role: UserRole.ORGANIZER,
     },
   });
-  console.log(`[SEEDER] Organizer created: ${organizer.email}`);
 
-  // Create Customer Users
   console.log('[SEEDER] Creating customer users...');
   const customers: any[] = [];
 
@@ -78,25 +82,23 @@ async function main() {
       },
     });
     customers.push(customer);
-    console.log(`[SEEDER] Customer created: ${customer.email}`);
   }
 
-  // Create Events for the Organizer
   console.log('[SEEDER] Creating events...');
 
-  // Live Event (happening now)
+  const today = new Date();
   const liveEvent = await prisma.event.create({
     data: {
       title: 'Summer Music Festival 2025',
       description:
         'A spectacular 3-day music festival featuring top artists from around the world. Experience amazing performances across multiple stages with food, drinks, and unforgettable memories.',
-      category: 'Music',
-      start_date: new Date('2025-08-20T18:00:00Z'), // Yesterday
-      end_date: new Date('2025-08-22T23:59:59Z'), // Tomorrow
+      category: $Enums.EventCategory.MUSIC,
+      start_date: new Date(today.getTime() - 24 * 60 * 60 * 1000), // Yesterday
+      end_date: new Date(today.getTime() + 27 * 60 * 60 * 1000), // In 3 days
       location: 'Central Park, New York',
       capacity: 5000,
-      ticket_price: 12500, // $125.00
-      tickets_remaining: 1200,
+      ticket_price: 125,
+      tickets_sold: 1200,
       status: EventStatus.PUBLISHED,
       organizer_id: organizer.id,
     },
@@ -109,37 +111,37 @@ async function main() {
       title: 'Tech Conference 2025',
       description:
         'Join industry leaders and innovators for a day of cutting-edge technology discussions, networking opportunities, and insights into the future of tech.',
-      category: 'Technology',
+      category: $Enums.EventCategory.CONFERENCE,
       start_date: new Date('2025-09-15T09:00:00Z'),
       end_date: new Date('2025-09-15T18:00:00Z'),
       location: 'Convention Center, San Francisco',
       capacity: 1000,
-      ticket_price: 19900, // $199.00
-      tickets_remaining: 750,
+      ticket_price: 199,
+      tickets_sold: 750,
     },
     {
       title: 'Food & Wine Tasting',
       description:
         'An exquisite evening of wine tasting paired with gourmet cuisine prepared by renowned chefs. Perfect for food enthusiasts and wine connoisseurs.',
-      category: 'Food & Drink',
+      category: $Enums.EventCategory.CULINARY,
       start_date: new Date('2025-10-02T19:00:00Z'),
       end_date: new Date('2025-10-02T23:00:00Z'),
       location: 'Downtown Hotel Ballroom, Chicago',
       capacity: 200,
-      ticket_price: 15000, // $150.00
-      tickets_remaining: 50,
+      ticket_price: 150,
+      tickets_sold: 50,
     },
     {
       title: 'Christmas Market & Concert',
       description:
         'Celebrate the holiday season with a magical Christmas market featuring local artisans, followed by a festive concert with seasonal favorites.',
-      category: 'Holiday',
+      category: $Enums.EventCategory.FAIR,
       start_date: new Date('2025-12-20T16:00:00Z'),
       end_date: new Date('2025-12-20T22:00:00Z'),
       location: 'Town Square, Boston',
       capacity: 3000,
-      ticket_price: 5000, // $50.00
-      tickets_remaining: 2800,
+      ticket_price: 50,
+      tickets_sold: 2800,
     },
   ];
 
@@ -160,25 +162,25 @@ async function main() {
       title: 'Spring Art Exhibition',
       description:
         'A curated collection of contemporary art from emerging and established artists, showcasing diverse styles and mediums.',
-      category: 'Art',
+      category: $Enums.EventCategory.ART,
       start_date: new Date('2025-05-10T10:00:00Z'),
       end_date: new Date('2025-05-12T18:00:00Z'),
       location: 'Modern Art Gallery, Los Angeles',
       capacity: 500,
-      ticket_price: 2500, // $25.00
-      tickets_remaining: 0, // Sold out
+      ticket_price: 25,
+      tickets_sold: 0, // Sold out
     },
     {
       title: 'Business Networking Brunch',
       description:
         'Connect with fellow entrepreneurs and business professionals over a delicious brunch. Exchange ideas, make connections, and grow your network.',
-      category: 'Business',
+      category: $Enums.EventCategory.CONFERENCE,
       start_date: new Date('2025-06-08T10:00:00Z'),
       end_date: new Date('2025-06-08T14:00:00Z'),
       location: 'Rooftop Terrace, Miami',
       capacity: 150,
-      ticket_price: 7500, // $75.00
-      tickets_remaining: 0, // Sold out
+      ticket_price: 75,
+      tickets_sold: 0, // Sold out
     },
   ];
 

@@ -5,7 +5,7 @@ export const toastSuccess = (message: string) => {
     duration: 3000,
     closeButton: true,
     classNames: {
-      toast: "!bg-success/15 !backdrop-blur-xl !border !border-success",
+      toast: "!bg-[#dbffdc] !backdrop-blur-xl !border !border-success",
       icon: "!text-success",
       title: "!text-success",
     },
@@ -17,7 +17,7 @@ export const toastError = (message: string) => {
     duration: 3000,
     closeButton: true,
     classNames: {
-      toast: "!bg-destructive/15 !backdrop-blur-xl !border !border-destructive",
+      toast: "!bg-[#ffdbdb] !backdrop-blur-xl !border !border-destructive",
       icon: "!text-destructive",
       title: "!text-destructive",
     },
@@ -29,7 +29,7 @@ export const toastInfo = (message: string) => {
     duration: 3000,
     closeButton: true,
     classNames: {
-      toast: "!bg-info/15 !backdrop-blur-xl !border !border-info",
+      toast: "!bg-[#dbeeff] !backdrop-blur-xl !border !border-info",
       icon: "!text-info",
       title: "!text-info",
     },

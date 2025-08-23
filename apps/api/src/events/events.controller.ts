@@ -130,16 +130,24 @@ export class EventsController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORGANIZER, UserRole.ADMIN)
   async update(
     @Param('id') id: string,
     @Body(new ValidationPipe()) updateEventDto: UpdateEventDto,
+    @Request() req: RequestType & { user: { id: number; role: UserRole } },
   ) {
     try {
       const eventId = parseInt(id, 10);
       if (isNaN(eventId)) {
         throw new BadRequestException('Invalid event ID format');
       }
-      const event = await this.eventsService.update(eventId, updateEventDto);
+      const event = await this.eventsService.update(
+        eventId,
+        updateEventDto,
+        req.user.id,
+        req.user.role,
+      );
       return ResponseBuilder.success(event, 'Event updated successfully');
     } catch (error) {
       if (
@@ -157,8 +165,13 @@ export class EventsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORGANIZER, UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
-  async remove(@Param('id') id: string) {
+  async remove(
+    @Param('id') id: string,
+    @Request() req: RequestType & { user: { id: number; role: UserRole } },
+  ) {
     try {
       const eventId = parseInt(id, 10);
       if (isNaN(eventId)) {
