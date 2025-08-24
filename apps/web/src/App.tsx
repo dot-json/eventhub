@@ -1,8 +1,8 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { ThemeProvider } from "@/components/theme-provider";
 import Layout from "./components/layout";
-import ProtectedRoute from "./components/ProtectedRoute";
-import PublicRoute from "./components/PublicRoute";
+import ProtectedRoute from "./components/protected-route";
+import PublicRoute from "./components/public-route";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";

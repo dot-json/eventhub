@@ -55,6 +55,7 @@ export interface Event {
   organizer_id: number;
   created_at: string;
   updated_at: string;
+  user_ticket_count?: number;
   organizer?: {
     id: number;
     first_name: string;
@@ -79,11 +80,13 @@ export interface UpdateEventData extends Partial<CreateEventData> {
 }
 
 export interface EventFilters {
+  search?: string;
   category?: EventCategory;
-  location?: string;
-  startDate?: string;
-  endDate?: string;
-  status?: string;
+  start_date?: string;
+  end_date?: string;
+  sort_by?: "date_asc" | "date_desc" | "ticket_price_asc" | "ticket_price_desc";
+  limit?: number;
+  offset?: number;
 }
 
 export interface GroupedEvents {
@@ -112,6 +115,13 @@ const isEventPast = (event: Event): boolean => {
   const endDate = new Date(event.end_date);
   return endDate < now;
 };
+
+const getUserTicketCount = (event: Event): number => {
+  return event.user_ticket_count || 0;
+};
+
+// Export utility functions for external use
+export { getUserTicketCount };
 
 const groupEventsByStatus = (events: Event[]): GroupedEvents => {
   const live: Event[] = [];
@@ -178,6 +188,7 @@ interface EventState {
 
   // Computed getters
   getGroupedMyEvents: () => GroupedEvents;
+  getUserTicketCount: (event: Event) => number;
 }
 
 export const useEventStore = create<EventState>()(
@@ -197,6 +208,10 @@ export const useEventStore = create<EventState>()(
         return groupEventsByStatus(get().events);
       },
 
+      getUserTicketCount: (event: Event) => {
+        return getUserTicketCount(event);
+      },
+
       // Actions
       fetchEvents: async (filters?: EventFilters) => {
         try {
@@ -213,6 +228,8 @@ export const useEventStore = create<EventState>()(
           const queryString = queryParams.toString();
           const url = queryString ? `/events?${queryString}` : "/events";
 
+          // The API will automatically include user_ticket_count if user is authenticated
+          // via JWT token in request headers
           const response = await api.get(url);
           const events = response.data.data;
 

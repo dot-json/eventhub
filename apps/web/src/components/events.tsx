@@ -1,4 +1,4 @@
-import { SquareArrowOutUpRight, Tags } from "lucide-react";
+import { MapPin, SquareArrowOutUpRight, Tags } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link } from "react-router";
 import { dateFormat } from "@/lib/utils";
@@ -76,11 +76,12 @@ export const PublicEvent = ({
   title,
   description,
   category,
+  location,
   start_date,
   end_date,
   capacity,
   tickets_sold,
-}: MyEventProps) => {
+}: MyEventProps & { location: string }) => {
   const shortenDesc = (text: string) => {
     return text.length > 124 ? text.slice(0, 124) + "..." : text;
   };
@@ -88,6 +89,12 @@ export const PublicEvent = ({
     if (!category) return "";
     const categoryItem = EVENT_CATEGORIES.find((cat) => cat.value === category);
     return categoryItem ? categoryItem.label : category;
+  };
+  const isLive = () => {
+    const now = new Date();
+    const start = new Date(start_date);
+    const end = new Date(end_date);
+    return now >= start && now <= end;
   };
 
   return (
@@ -98,13 +105,22 @@ export const PublicEvent = ({
             <p className="text-sm">{dateFormat(start_date, end_date)}</p>
             <h2>{title}</h2>
             {category && (
-              <p className="text-muted-foreground/75 flex items-center gap-1 text-sm">
+              <p className="text-muted-foreground/75 mt-0.5 flex items-center gap-1 text-sm">
                 <Tags className="size-4" />
                 {getCategoryLabel(category)}
               </p>
             )}
+            <p className="text-muted-foreground/75 mt-0.5 flex items-center gap-1 text-sm">
+              <MapPin className="size-4" />
+              {location}
+            </p>
           </div>
-          <p className="font-semibold"></p>
+          {isLive() && (
+            <p className="flex h-fit items-center gap-3">
+              <span className="dot animate-ripple"></span>
+              <span>Live Now</span>
+            </p>
+          )}
         </div>
         <p>{shortenDesc(description)}</p>
       </div>

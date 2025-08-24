@@ -9,6 +9,8 @@ import {
   MapPin,
   SquarePen,
   Tags,
+  Tickets,
+  TriangleAlert,
   Users,
 } from "lucide-react";
 import { cn, dateFormat } from "@/lib/utils";
@@ -17,20 +19,34 @@ import { Button } from "./ui/button";
 import EventEditor from "./event-editor";
 import { toastError, toastInfo, toastSuccess } from "@/utils/toastWrapper";
 import { useUser } from "@/hooks/useAuth";
+import PurchaseTicket from "./purchase-ticket";
 
 const Event = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
-  const { currentEvent, isLoading, error, fetchEvent, updateEvent } =
-    useEventStore();
-  const { isOrganizer, isAdmin } = useUser();
+  const {
+    currentEvent,
+    isLoading,
+    error,
+    fetchEvent,
+    updateEvent,
+    getUserTicketCount,
+  } = useEventStore();
+  const { isOrganizer, isAdmin, isCustomer } = useUser();
 
   const [editOpen, setEditOpen] = useState(false);
+  const [purchaseOpen, setPurchaseOpen] = useState(false);
 
   const getCategoryLabel = (category?: string) => {
     if (!category) return "";
     const categoryItem = EVENT_CATEGORIES.find((cat) => cat.value === category);
     return categoryItem ? categoryItem.label : category;
+  };
+  const isLive = (start_date: string, end_date: string) => {
+    const now = new Date();
+    const start = new Date(start_date);
+    const end = new Date(end_date);
+    return now >= start && now <= end;
   };
 
   const moveTo = async (status: "DRAFT" | "PUBLISHED" | "CANCELLED") => {
@@ -111,6 +127,13 @@ const Event = () => {
             {currentEvent.status}
           </span>
         )}
+        {isCustomer &&
+          isLive(currentEvent.start_date, currentEvent.end_date) && (
+            <p className="flex h-fit items-center gap-3">
+              <span className="dot animate-ripple"></span>
+              <span>Live Now</span>
+            </p>
+          )}
       </div>
       <p>{currentEvent.description}</p>
       <div className="grid grid-cols-1 place-items-start gap-4 text-lg lg:grid-cols-2">
@@ -147,7 +170,7 @@ const Event = () => {
       </div>
       <div className="flex flex-col gap-3">
         <h2>Tickets</h2>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           <p className="text-base sm:text-lg">
             {`Sold: ${currentEvent.tickets_sold} out of ${currentEvent.capacity} (${currentEvent.capacity - currentEvent.tickets_sold} remaining)`}
           </p>
@@ -185,11 +208,48 @@ const Event = () => {
           </div>
         </div>
       )}
+      {isCustomer && (
+        <div className="flex items-center gap-4">
+          <Button
+            size="lg"
+            className="hover:bg-primary group relative w-fit disabled:[&>span]:hidden"
+            disabled={
+              currentEvent.tickets_sold >= currentEvent.capacity ||
+              currentEvent.status === "CANCELLED" ||
+              getUserTicketCount(currentEvent) >= 5
+            }
+            onClick={() => setPurchaseOpen(true)}
+          >
+            <span className="bg-conic-grad absolute inset-0 -z-10 overflow-hidden rounded-full transition-all group-hover:-inset-1 after:absolute after:top-1/2 after:left-1/2 after:aspect-square after:w-[120%] after:-translate-x-1/2 after:-translate-y-1/2 after:animate-spin after:rounded-full"></span>
+            <Tickets />
+            Buy Ticket(s)
+          </Button>
+          {getUserTicketCount(currentEvent) > 0 &&
+            getUserTicketCount(currentEvent) < 5 && (
+              <span className="text-muted-foreground text-sm">
+                You have {getUserTicketCount(currentEvent)} ticket(s) for this
+                event
+              </span>
+            )}
+          {getUserTicketCount(currentEvent) >= 5 && (
+            <span className="text-warning flex items-center gap-1 text-sm">
+              <TriangleAlert className="size-6" />
+              You have reached the maximum ticket limit for this event
+            </span>
+          )}
+        </div>
+      )}
       <EventEditor
         open={editOpen}
         onClose={() => setEditOpen(false)}
         mode="edit"
       />
+      {isCustomer && (
+        <PurchaseTicket
+          open={purchaseOpen}
+          onClose={() => setPurchaseOpen(false)}
+        />
+      )}
     </div>
   );
 };

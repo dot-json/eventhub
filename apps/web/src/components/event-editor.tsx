@@ -181,17 +181,27 @@ const EventEditor = ({ open, onClose, mode }: EditEventProps) => {
       />
       <div
         className={cn(
-          "bg-background z-[771] mt-[calc(4rem+1px)] flex size-full max-h-[90vh] w-full flex-col overflow-scroll transition-transform duration-250 [grid-area:1/1] sm:m-0 sm:h-fit sm:max-w-2xl sm:rounded-xl sm:border",
+          "bg-background z-[771] mt-[calc(4rem+1px)] flex size-full max-h-[90vh] w-full flex-col overflow-scroll transition-transform duration-250 [grid-area:1/1] sm:m-4 sm:h-fit sm:max-w-xl sm:rounded-xl sm:border lg:max-w-2xl",
           open ? "scale-100" : "scale-80",
         )}
       >
-        <div className="bg-background sticky top-0 z-10 flex items-center justify-between p-4">
-          <h2>{mode === "edit" ? "Edit Event" : "Create Event"}</h2>
-          <Button size="icon" variant="ghost" onClick={onClose}>
-            <X />
+        <div className="bg-background sticky top-0 z-10 flex items-center justify-between p-4 sm:p-6">
+          <h2 className="text-2xl sm:text-3xl">
+            {mode === "edit" ? "Edit Event" : "Create Event"}
+          </h2>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-10"
+            onClick={onClose}
+          >
+            <X className="size-5" />
           </Button>
         </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 p-4 pt-0">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="grid gap-4 p-4 sm:p-6 sm:pt-2"
+        >
           <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-3">
             <div className="col-span-2 grid gap-2">
               <Label htmlFor="event-name">Event Name</Label>

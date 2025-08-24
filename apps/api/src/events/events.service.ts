@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { QueryEventsDto } from './dto/query-events.dto';
 import { EventStatus, Event, $Enums, Prisma, UserRole } from 'generated/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
 import { PrismaService } from '../prisma.service';
@@ -23,6 +24,7 @@ export type EventSummary = {
   ticket_price: Decimal;
   tickets_sold: number;
   status: EventStatus;
+  user_ticket_count?: number;
   organizer: {
     id: number;
     org_name: string | null;
@@ -33,30 +35,168 @@ export type EventSummary = {
 export class EventsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<EventSummary[]> {
-    return this.prisma.event.findMany({
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        category: true,
-        start_date: true,
-        end_date: true,
-        location: true,
-        capacity: true,
-        ticket_price: true,
-        tickets_sold: true,
-        status: true,
-        organizer: {
-          select: {
-            id: true,
-            org_name: true,
+  async findAll(
+    queryDto: QueryEventsDto = {},
+    userId?: number,
+  ): Promise<EventSummary[]> {
+    const {
+      search,
+      category,
+      start_date,
+      end_date,
+      sort_by = 'date_asc',
+      limit = 50,
+      offset = 0,
+    } = queryDto;
+
+    const where: Prisma.EventWhereInput = {
+      status: 'PUBLISHED',
+      end_date: { gte: new Date() },
+    };
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { location: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (category) {
+      where.category = category;
+    }
+
+    // Date range filters using Budapest timezone (Europe/Budapest)
+    // Currently UTC+2 (CEST - Central European Summer Time)
+    if (start_date) {
+      // Show events that are still active on or after this date
+      // (events that end on or after the start_date)
+      const startOfDay = new Date(`${start_date}T00:00:00+02:00`);
+      where.end_date = { gte: startOfDay };
+    }
+    if (end_date) {
+      // Show events that are active on or before this date
+      // (events that start on or before the end_date)
+      const endOfDay = new Date(`${end_date}T23:59:59+02:00`);
+      where.start_date = { lte: endOfDay };
+    }
+
+    let orderBy: Prisma.EventOrderByWithRelationInput = {};
+    switch (sort_by) {
+      case 'date_asc':
+        orderBy = { start_date: 'asc' };
+        break;
+      case 'date_desc':
+        orderBy = { start_date: 'desc' };
+        break;
+      case 'ticket_price_asc':
+        orderBy = { ticket_price: 'asc' };
+        break;
+      case 'ticket_price_desc':
+        orderBy = { ticket_price: 'desc' };
+        break;
+      default:
+        orderBy = { start_date: 'desc' };
+    }
+    if (userId) {
+      // Include ticket count when userId is provided
+      const events = await this.prisma.event.findMany({
+        where,
+        orderBy,
+        take: limit,
+        skip: offset,
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          category: true,
+          start_date: true,
+          end_date: true,
+          location: true,
+          capacity: true,
+          ticket_price: true,
+          tickets_sold: true,
+          status: true,
+          organizer: {
+            select: {
+              id: true,
+              org_name: true,
+            },
+          },
+          created_at: true,
+          updated_at: true,
+          _count: {
+            select: {
+              tickets: {
+                where: {
+                  user_id: userId,
+                },
+              },
+            },
           },
         },
-        created_at: true,
-        updated_at: true,
-      },
-    });
+      });
+
+      return events.map((event) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        category: event.category,
+        start_date: event.start_date,
+        end_date: event.end_date,
+        location: event.location,
+        capacity: event.capacity,
+        ticket_price: event.ticket_price,
+        tickets_sold: event.tickets_sold,
+        status: event.status,
+        organizer: event.organizer,
+        user_ticket_count: event._count.tickets,
+      }));
+    } else {
+      // Standard query without ticket counts for anonymous users
+      const events = await this.prisma.event.findMany({
+        where,
+        orderBy,
+        take: limit,
+        skip: offset,
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          category: true,
+          start_date: true,
+          end_date: true,
+          location: true,
+          capacity: true,
+          ticket_price: true,
+          tickets_sold: true,
+          status: true,
+          organizer: {
+            select: {
+              id: true,
+              org_name: true,
+            },
+          },
+          created_at: true,
+          updated_at: true,
+        },
+      });
+
+      return events.map((event) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        category: event.category,
+        start_date: event.start_date,
+        end_date: event.end_date,
+        location: event.location,
+        capacity: event.capacity,
+        ticket_price: event.ticket_price,
+        tickets_sold: event.tickets_sold,
+        status: event.status,
+        organizer: event.organizer,
+      }));
+    }
   }
 
   async findByOrganizer(organizerId: number): Promise<EventSummary[]> {
@@ -91,8 +231,18 @@ export class EventsService {
     });
   }
 
-  async findOne(id: number): Promise<EventSummary> {
-    const event = await this.prisma.event.findUnique({
+  async findOne(
+    id: number,
+    userId: number,
+    userRole?: string,
+  ): Promise<EventSummary> {
+    // Build the where clause - customers can only see published events
+    const baseWhere: Prisma.EventWhereInput = { id };
+    if (userRole === 'CUSTOMER') {
+      baseWhere.status = 'PUBLISHED';
+    }
+
+    const event = await this.prisma.event.findFirst({
       select: {
         id: true,
         title: true,
@@ -113,13 +263,39 @@ export class EventsService {
         },
         created_at: true,
         updated_at: true,
+        _count: {
+          select: {
+            tickets: {
+              where: {
+                user_id: userId,
+              },
+            },
+          },
+        },
       },
-      where: { id },
+      where: baseWhere,
     });
+
     if (!event) {
       throw new NotFoundException('Event not found');
     }
-    return event;
+
+    // Transform to include user_ticket_count
+    return {
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      category: event.category,
+      start_date: event.start_date,
+      end_date: event.end_date,
+      location: event.location,
+      capacity: event.capacity,
+      ticket_price: event.ticket_price,
+      tickets_sold: event.tickets_sold,
+      status: event.status,
+      organizer: event.organizer,
+      user_ticket_count: event._count.tickets,
+    };
   }
 
   async create(

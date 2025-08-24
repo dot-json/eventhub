@@ -44,7 +44,7 @@ const MyEventsPage = () => {
           {groupedMyEvents.live.length > 0 && (
             <div className="flex flex-col gap-4">
               <h2 className="flex items-center gap-3">
-                <div className="dot animate-ripple"></div>
+                <span className="dot animate-ripple"></span>
                 <span>Live Now</span>
               </h2>
               <div className="flex flex-col gap-6">
