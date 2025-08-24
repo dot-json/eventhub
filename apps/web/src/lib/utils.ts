@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import { format } from "date-fns";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -17,15 +18,15 @@ export const dateFormat = (start: string, end: string): string => {
     startDate.getMonth() === endDate.getMonth() &&
     startDate.getDate() === endDate.getDate()
   ) {
-    return `${startDate.getFullYear()} ${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}, ${startDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "numeric" })} - ${endDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "numeric" })}`;
+    return `${format(startDate, "yyyy MMM dd, h:mm a")} - ${format(endDate, "h:mm a")}`;
   } else if (
     startDate.getFullYear() === endDate.getFullYear() &&
     startDate.getMonth() === endDate.getMonth()
   ) {
-    return `${startDate.getFullYear()} ${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${endDate.toLocaleDateString("en-US", { day: "numeric" })}`;
+    return `${format(startDate, "yyyy MMM dd, h:mm a")} - ${format(endDate, "dd, h:mm a")}`;
   } else if (startDate.getFullYear() === endDate.getFullYear()) {
-    return `${startDate.getFullYear()} ${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${endDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+    return `${format(startDate, "yyyy MMM dd, h:mm a")} - ${format(endDate, "MMM dd, h:mm a")}`;
   }
 
-  return `${startDate.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })} - ${endDate.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}`;
+  return `${format(startDate, "yyyy MMM dd, h:mm a")} - ${format(endDate, "yyyy MMM dd, h:mm a")}`;
 };

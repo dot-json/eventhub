@@ -1,4 +1,4 @@
-import { SquareArrowOutUpRight } from "lucide-react";
+import { SquareArrowOutUpRight, Tags } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link } from "react-router";
 import { dateFormat } from "@/lib/utils";
@@ -42,7 +42,8 @@ export const MyEvent = ({
             <p className="text-sm">{dateFormat(start_date, end_date)}</p>
             <h2>{title}</h2>
             {category && (
-              <p className="text-muted-foreground/75 text-sm">
+              <p className="text-muted-foreground/75 flex items-center gap-1 text-sm">
+                <Tags className="size-4" />
                 {getCategoryLabel(category)}
               </p>
             )}

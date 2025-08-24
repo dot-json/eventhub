@@ -33,12 +33,12 @@ export class TicketsService {
     userId: number,
   ): Promise<Ticket> {
     // Generate complex hash for the ticket
-    const hash = this.generateTicketHash(createTicketDto.eventId, userId);
+    const hash = this.generateTicketHash(createTicketDto.event_id, userId);
 
     try {
       // Check if event exists and has capacity
       const event = await this.prisma.event.findUnique({
-        where: { id: createTicketDto.eventId },
+        where: { id: createTicketDto.event_id },
         include: { _count: { select: { tickets: true } } },
       });
 
@@ -53,7 +53,7 @@ export class TicketsService {
       // Check user's current ticket count for this event (max 5)
       const userTicketCount = await this.prisma.ticket.count({
         where: {
-          event_id: createTicketDto.eventId,
+          event_id: createTicketDto.event_id,
           user_id: userId,
         },
       });
@@ -66,7 +66,7 @@ export class TicketsService {
 
       return await this.prisma.ticket.create({
         data: {
-          event_id: createTicketDto.eventId,
+          event_id: createTicketDto.event_id,
           user_id: userId,
           hash: hash,
         },
@@ -109,13 +109,13 @@ export class TicketsService {
     purchaseTicketDto: PurchaseTicketDto,
     userId: number,
   ): Promise<Ticket[]> {
-    const { eventId, quantity = 1 } = purchaseTicketDto;
+    const { event_id, quantity = 1 } = purchaseTicketDto;
 
     // Use a transaction to handle race conditions
     return await this.prisma.$transaction(async (prisma) => {
       // Lock the event row to prevent race conditions on capacity
       const event = await prisma.event.findUnique({
-        where: { id: eventId },
+        where: { id: event_id },
         include: { _count: { select: { tickets: true } } },
       });
 
@@ -126,7 +126,7 @@ export class TicketsService {
       // Check current user's ticket count for this event
       const userTicketCount = await prisma.ticket.count({
         where: {
-          event_id: eventId,
+          event_id: event_id,
           user_id: userId,
         },
       });
@@ -148,11 +148,11 @@ export class TicketsService {
       // Create multiple tickets
       const tickets: Ticket[] = [];
       for (let i = 0; i < quantity; i++) {
-        const hash = this.generateTicketHash(eventId, userId);
+        const hash = this.generateTicketHash(event_id, userId);
 
         const ticket = await prisma.ticket.create({
           data: {
-            event_id: eventId,
+            event_id: event_id,
             user_id: userId,
             hash: hash,
           },

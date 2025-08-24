@@ -34,12 +34,12 @@ export class UpdateEventDto {
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  startDate?: Date;
+  start_date?: Date;
 
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  endDate?: Date;
+  end_date?: Date;
 
   @IsOptional()
   @IsNotEmpty()
@@ -58,8 +58,12 @@ export class UpdateEventDto {
   @IsOptional()
   @Transform(({ value }) => {
     if (value === null || value === undefined || value === '') return undefined;
-    const num = parseFloat(value);
-    return isNaN(num) ? value : num;
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const num = parseFloat(value);
+      return isNaN(num) ? value : num;
+    }
+    return value;
   })
   @IsNumber(
     { maxDecimalPlaces: 2 },

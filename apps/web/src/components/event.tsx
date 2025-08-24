@@ -14,14 +14,17 @@ import {
 import { cn, dateFormat } from "@/lib/utils";
 import { useLocation } from "react-router";
 import { Button } from "./ui/button";
-import EditEvent from "./edit-event";
+import EventEditor from "./event-editor";
 import { toastError, toastInfo, toastSuccess } from "@/utils/toastWrapper";
+import { useUser } from "@/hooks/useAuth";
 
 const Event = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const { currentEvent, isLoading, error, fetchEvent, updateEvent } =
     useEventStore();
+  const { isOrganizer, isAdmin } = useUser();
+
   const [editOpen, setEditOpen] = useState(false);
 
   const getCategoryLabel = (category?: string) => {
@@ -94,17 +97,20 @@ const Event = () => {
             </p>
           )}
         </div>
-        <span
-          className={cn(
-            "size-fit rounded-full px-4 py-2 text-sm font-semibold select-none sm:text-base",
-            currentEvent.status === "DRAFT" && "bg-info/20 text-info",
-            currentEvent.status === "PUBLISHED" && "bg-success/20 text-success",
-            currentEvent.status === "CANCELLED" &&
-              "bg-destructive/20 text-destructive",
-          )}
-        >
-          {currentEvent.status}
-        </span>
+        {(isOrganizer || isAdmin) && (
+          <span
+            className={cn(
+              "size-fit rounded-full px-4 py-2 text-sm font-semibold select-none sm:text-base",
+              currentEvent.status === "DRAFT" && "bg-info/20 text-info",
+              currentEvent.status === "PUBLISHED" &&
+                "bg-success/20 text-success",
+              currentEvent.status === "CANCELLED" &&
+                "bg-destructive/20 text-destructive",
+            )}
+          >
+            {currentEvent.status}
+          </span>
+        )}
       </div>
       <p>{currentEvent.description}</p>
       <div className="grid grid-cols-1 place-items-start gap-4 text-lg lg:grid-cols-2">
@@ -115,7 +121,7 @@ const Event = () => {
           </div>
           <span>{currentEvent.location}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-2">
           <div className="flex items-center gap-2">
             <CalendarClock />
             <span className="font-semibold">Date:</span>
@@ -124,14 +130,14 @@ const Event = () => {
             {dateFormat(currentEvent.start_date, currentEvent.end_date)}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-2">
           <div className="flex items-center gap-2">
             <Users />
             <span className="font-semibold">Capacity:</span>
           </div>
           <span>{currentEvent.capacity}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-2">
           <div className="flex items-center gap-2">
             <Banknote />
             <span className="font-semibold">Price:</span>
@@ -155,29 +161,35 @@ const Event = () => {
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-between gap-4">
-        <Button className="w-fit" onClick={() => setEditOpen(true)}>
-          <SquarePen />
-          Edit Event
-        </Button>
-        <div className="flex gap-2">
-          {currentEvent.status === "PUBLISHED" && (
-            <Button variant="outline" onClick={() => moveTo("DRAFT")}>
-              Move to Draft
-            </Button>
-          )}
-          {(currentEvent.status === "DRAFT" ||
-            currentEvent.status === "CANCELLED") && (
-            <Button variant="outline" onClick={() => moveTo("PUBLISHED")}>
-              Publish Event
-            </Button>
-          )}
-          <Button variant="destructive" onClick={() => moveTo("CANCELLED")}>
-            Cancel Event
+      {(isOrganizer || isAdmin) && (
+        <div className="flex items-center justify-between gap-4">
+          <Button className="w-fit" onClick={() => setEditOpen(true)}>
+            <SquarePen />
+            Edit Event
           </Button>
+          <div className="flex gap-2">
+            {currentEvent.status === "PUBLISHED" && (
+              <Button variant="outline" onClick={() => moveTo("DRAFT")}>
+                Move to Draft
+              </Button>
+            )}
+            {(currentEvent.status === "DRAFT" ||
+              currentEvent.status === "CANCELLED") && (
+              <Button variant="outline" onClick={() => moveTo("PUBLISHED")}>
+                Publish Event
+              </Button>
+            )}
+            <Button variant="destructive" onClick={() => moveTo("CANCELLED")}>
+              Cancel Event
+            </Button>
+          </div>
         </div>
-      </div>
-      <EditEvent open={editOpen} onClose={() => setEditOpen(false)} />
+      )}
+      <EventEditor
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        mode="edit"
+      />
     </div>
   );
 };

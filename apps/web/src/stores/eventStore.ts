@@ -67,8 +67,8 @@ export interface CreateEventData {
   title: string;
   description: string;
   category?: EventCategory;
-  startDate: Date | string;
-  endDate: Date | string;
+  start_date: string;
+  end_date: string;
   location: string;
   capacity: number;
   ticket_price: number;

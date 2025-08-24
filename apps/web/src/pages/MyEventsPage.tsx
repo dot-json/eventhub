@@ -1,3 +1,4 @@
+import EventEditor from "@/components/event-editor";
 import { MyEvent } from "@/components/events";
 import {
   Accordion,
@@ -8,14 +9,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { useEventStore } from "@/stores/eventStore";
 import { Loader2Icon, Plus } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const MyEventsPage = () => {
-  const { getGroupedMyEvents, fetchMyEvents, isLoading, error } =
-    useEventStore();
+  const {
+    getGroupedMyEvents,
+    fetchMyEvents,
+    isLoading,
+    error,
+    clearCurrentEvent,
+  } = useEventStore();
   const groupedMyEvents = getGroupedMyEvents();
+  const [createEventOpen, setCreateEventOpen] = useState(false);
 
   useEffect(() => {
+    clearCurrentEvent();
     fetchMyEvents();
   }, [fetchMyEvents]);
 
@@ -23,14 +31,13 @@ const MyEventsPage = () => {
     <div className="flex flex-col gap-4 sm:gap-6">
       <div className="flex items-center justify-between">
         <h1>My Events</h1>
-        <Button>
+        <Button onClick={() => setCreateEventOpen(true)}>
           <Plus />
           Create Event
         </Button>
       </div>
 
       {isLoading && <Loader2Icon className="mx-auto animate-spin" />}
-      {error && <div className="text-destructive">Error: {error.message}</div>}
 
       {!isLoading && !error && (
         <>
@@ -85,6 +92,11 @@ const MyEventsPage = () => {
           </Accordion>
         </>
       )}
+      <EventEditor
+        open={createEventOpen}
+        onClose={() => setCreateEventOpen(false)}
+        mode="create"
+      />
     </div>
   );
 };

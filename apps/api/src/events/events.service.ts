@@ -132,8 +132,8 @@ export class EventsService {
           title: createEventDto.title,
           description: createEventDto.description,
           category: createEventDto.category,
-          start_date: createEventDto.startDate,
-          end_date: createEventDto.endDate,
+          start_date: createEventDto.start_date,
+          end_date: createEventDto.end_date,
           location: createEventDto.location,
           capacity: createEventDto.capacity,
           ticket_price: createEventDto.ticket_price,
@@ -177,12 +177,12 @@ export class EventsService {
       data.category = updateEventDto.category;
     }
 
-    if (updateEventDto.startDate !== undefined) {
-      data.start_date = updateEventDto.startDate;
+    if (updateEventDto.start_date !== undefined) {
+      data.start_date = updateEventDto.start_date;
     }
 
-    if (updateEventDto.endDate !== undefined) {
-      data.end_date = updateEventDto.endDate;
+    if (updateEventDto.end_date !== undefined) {
+      data.end_date = updateEventDto.end_date;
     }
 
     if (updateEventDto.location !== undefined) {

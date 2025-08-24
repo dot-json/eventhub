@@ -3,7 +3,7 @@ import { IsNumber, IsPositive, Min, Max, IsOptional } from 'class-validator';
 export class PurchaseTicketDto {
   @IsNumber()
   @IsPositive()
-  eventId: number;
+  event_id: number;
 
   @IsOptional()
   @IsNumber()

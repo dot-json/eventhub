@@ -7,7 +7,9 @@ import {
   IsDate,
   IsInt,
   IsEnum,
-  IsDecimal,
+  MinLength,
+  IsNumber,
+  Min,
 } from 'class-validator';
 import { $Enums } from 'generated/prisma';
 
@@ -19,6 +21,8 @@ export class CreateEventDto {
 
   @IsNotEmpty()
   @IsString()
+  @MinLength(10)
+  @MaxLength(1000)
   description: string;
 
   @IsEnum($Enums.EventCategory)
@@ -27,11 +31,11 @@ export class CreateEventDto {
 
   @Type(() => Date)
   @IsDate()
-  startDate: Date;
+  start_date: Date;
 
   @Type(() => Date)
   @IsDate()
-  endDate: Date;
+  end_date: Date;
 
   @IsNotEmpty()
   @IsString()
@@ -40,9 +44,22 @@ export class CreateEventDto {
   @IsInt()
   capacity: number;
 
-  @IsDecimal(
-    { decimal_digits: '0,2' },
-    { message: 'Invalid ticket price format' },
+  @Transform(({ value }) => {
+    if (value === null || value === undefined || value === '') return undefined;
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const num = parseFloat(value);
+      return isNaN(num) ? value : num;
+    }
+    return value;
+  })
+  @IsNumber(
+    { maxDecimalPlaces: 2 },
+    {
+      message:
+        'Ticket price must be a valid number with up to 2 decimal places',
+    },
   )
+  @Min(0, { message: 'Ticket price must be greater than or equal to 0' })
   ticket_price: number;
 }
