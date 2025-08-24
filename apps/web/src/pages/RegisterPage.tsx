@@ -80,7 +80,7 @@ const RegisterPage = () => {
                   type="button"
                   onClick={() => setSelectedRole("CUSTOMER")}
                   className={cn(
-                    `h-9 w-[calc(50%+1rem)] rounded-l-full transition-colors [clip-path:polygon(0_0,_100%_0%,_calc(100%-2rem)_100%,_0%_100%)] [grid-area:1/1]`,
+                    `dark:hover:bg-primary/10 h-9 w-[calc(50%+1rem)] rounded-l-full transition-colors [clip-path:polygon(0_0,_100%_0%,_calc(100%-2rem)_100%,_0%_100%)] [grid-area:1/1]`,
                     selectedRole === "CUSTOMER"
                       ? "bg-primary text-primary-foreground"
                       : "hover:bg-accent cursor-pointer",
@@ -92,7 +92,7 @@ const RegisterPage = () => {
                   type="button"
                   onClick={() => setSelectedRole("ORGANIZER")}
                   className={cn(
-                    `h-9 w-[calc(50%+1rem)] cursor-pointer justify-self-end rounded-r-full transition-colors [clip-path:polygon(calc(0%+2rem)_0,_100%_0%,_100%_100%,_0%_100%)] [grid-area:1/1]`,
+                    `dark:hover:bg-primary/10 h-9 w-[calc(50%+1rem)] cursor-pointer justify-self-end rounded-r-full transition-colors [clip-path:polygon(calc(0%+2rem)_0,_100%_0%,_100%_100%,_0%_100%)] [grid-area:1/1]`,
                     selectedRole === "ORGANIZER"
                       ? "bg-primary text-primary-foreground"
                       : "hover:bg-accent cursor-pointer",

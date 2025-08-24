@@ -186,7 +186,7 @@ const EventEditor = ({ open, onClose, mode }: EditEventProps) => {
         )}
       >
         <div className="bg-background sticky top-0 z-10 flex items-center justify-between p-4">
-          <h2>Edit Event</h2>
+          <h2>{mode === "edit" ? "Edit Event" : "Create Event"}</h2>
           <Button size="icon" variant="ghost" onClick={onClose}>
             <X />
           </Button>

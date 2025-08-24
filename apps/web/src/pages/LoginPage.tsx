@@ -40,7 +40,7 @@ const LoginPage = () => {
     if ("error" in result) {
       toastError(result.error.message);
     } else {
-      navigate("/");
+      navigate(result.user.role === "ORGANIZER" ? "/my-events" : "/events");
     }
   };
 

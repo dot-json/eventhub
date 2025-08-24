@@ -55,17 +55,17 @@ async function main() {
 
   const customerData = [
     {
-      email: 'john.doe@example.local',
+      email: 'customer1@eventhub.local',
       first_name: 'John',
       last_name: 'Doe',
     },
     {
-      email: 'alice.johnson@example.local',
+      email: 'customer2@eventhub.local',
       first_name: 'Alice',
       last_name: 'Johnson',
     },
     {
-      email: 'bob.wilson@example.local',
+      email: 'customer3@eventhub.local',
       first_name: 'Bob',
       last_name: 'Wilson',
     },
@@ -246,7 +246,7 @@ async function main() {
     `[SEEDER] Organizer: organizer@eventhub.local (password: organizer123)`,
   );
   console.log(
-    `[SEEDER] Customers: john.doe@example.local, alice.johnson@example.local, bob.wilson@example.local (password: customer123)`,
+    `[SEEDER] Customers: customer1@eventhub.local, customer2@eventhub.local, customer3@eventhub.local (password: customer123)`,
   );
   console.log(`[SEEDER] Events: 1 live, 3 upcoming, 2 past`);
   console.log(`[SEEDER] Tickets: Created for customers attending events`);

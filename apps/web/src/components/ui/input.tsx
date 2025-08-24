@@ -7,7 +7,7 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   const [showPassword, setShowPassword] = React.useState(false);
 
   return (
-    <div className="relative">
+    <div className={cn("relative", className)}>
       <input
         type={type === "password" && showPassword ? "text" : type}
         data-slot="input"
@@ -16,7 +16,6 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
           "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
           "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
           type === "password" && "pr-10",
-          className,
         )}
         {...props}
       />

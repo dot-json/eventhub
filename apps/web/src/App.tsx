@@ -11,6 +11,7 @@ import SettingsPage from "./pages/SettingsPage";
 import MyEventsPage from "./pages/MyEventsPage";
 import Event from "./components/event";
 import NotFoundPage from "./pages/NotFoundPage";
+import PublicEventsPage from "./pages/PublicEventsPage";
 
 function App() {
   return (
@@ -51,6 +52,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/events" element={<PublicEventsPage />} />
             <Route path="/events/:id" element={<Event />} />
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
             <Route path="/404" element={<NotFoundPage />} />

@@ -8,10 +8,14 @@ import {
   LogOut,
   Settings,
   Tickets,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { useTheme } from "./theme-provider";
 
 const Header = () => {
+  const { setTheme, theme } = useTheme();
   const { isAuthenticated, logout } = useAuth();
   const { user, isOrganizer, isCustomer, isAdmin } = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -23,7 +27,7 @@ const Header = () => {
       if (isOrganizer) {
         return "/my-events";
       }
-      return "/my-tickets";
+      return "/events";
     } else {
       return "/";
     }
@@ -80,6 +84,18 @@ const Header = () => {
                       <span>Settings</span>
                     </Button>
                   </Link>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() =>
+                      setTheme(theme === "light" ? "dark" : "light")
+                    }
+                  >
+                    {theme === "light" ? <Moon /> : <Sun />}
+                    {theme === "light"
+                      ? "Switch to Dark Mode"
+                      : "Switch to Light Mode"}
+                  </Button>
                 </div>
                 <hr />
                 <Button
