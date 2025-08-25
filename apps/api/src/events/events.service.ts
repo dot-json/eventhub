@@ -66,19 +66,11 @@ export class EventsService {
       where.category = category;
     }
 
-    // Date range filters using Budapest timezone (Europe/Budapest)
-    // Currently UTC+2 (CEST - Central European Summer Time)
     if (start_date) {
-      // Show events that are still active on or after this date
-      // (events that end on or after the start_date)
-      const startOfDay = new Date(`${start_date}T00:00:00+02:00`);
-      where.end_date = { gte: startOfDay };
+      where.end_date = { gte: start_date };
     }
     if (end_date) {
-      // Show events that are active on or before this date
-      // (events that start on or before the end_date)
-      const endOfDay = new Date(`${end_date}T23:59:59+02:00`);
-      where.start_date = { lte: endOfDay };
+      where.start_date = { lte: end_date };
     }
 
     let orderBy: Prisma.EventOrderByWithRelationInput = {};

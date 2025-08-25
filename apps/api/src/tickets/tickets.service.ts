@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateTicketDto, PurchaseTicketDto } from './dto';
-import { Ticket } from '../../generated/prisma';
+import { Prisma, Ticket, EventStatus } from '../../generated/prisma';
 import { randomBytes, createHash } from 'crypto';
 
 @Injectable()
@@ -111,50 +111,92 @@ export class TicketsService {
   ): Promise<Ticket[]> {
     const { event_id, quantity = 1 } = purchaseTicketDto;
 
-    // Use a transaction to handle race conditions
-    return await this.prisma.$transaction(async (prisma) => {
-      // Lock the event row to prevent race conditions on capacity
-      const event = await prisma.event.findUnique({
-        where: { id: event_id },
-        include: { _count: { select: { tickets: true } } },
-      });
+    // Validate quantity upfront
+    if (quantity < 1 || quantity > 5) {
+      throw new BadRequestException('Quantity must be between 1 and 5');
+    }
 
-      if (!event) {
-        throw new NotFoundException('Event not found');
-      }
+    interface LockedEvent {
+      id: number;
+      title: string;
+      location: string;
+      capacity: number;
+      start_date: Date;
+      end_date: Date;
+      status: EventStatus;
+      tickets_sold: number;
+    }
 
-      // Check current user's ticket count for this event
-      const userTicketCount = await prisma.ticket.count({
-        where: {
-          event_id: event_id,
-          user_id: userId,
-        },
-      });
+    return await this.prisma.$transaction(
+      async (prisma) => {
+        // Lock the event row using raw SQL for PostgreSQL
+        const events = await prisma.$queryRaw<Array<LockedEvent>>`
+          UPDATE events 
+          SET tickets_sold = tickets_sold + ${quantity}
+          WHERE id = ${event_id} 
+          AND status = 'PUBLISHED'
+          AND tickets_sold + ${quantity} <= capacity
+          RETURNING id, title, location, capacity, start_date, end_date, status, tickets_sold;
+        `;
 
-      // Validate user doesn't exceed 5 tickets per event
-      if (userTicketCount + quantity > 5) {
-        throw new ConflictException(
-          `Cannot purchase ${quantity} tickets. User can have maximum 5 tickets per event. Current tickets: ${userTicketCount}`,
-        );
-      }
+        const event = events[0];
 
-      // Check if event has enough capacity
-      if (event._count.tickets + quantity > event.capacity) {
-        throw new ConflictException(
-          `Not enough capacity. Requested: ${quantity}, Available: ${event.capacity - event._count.tickets}`,
-        );
-      }
+        if (!event) {
+          throw new NotFoundException('Event not found');
+        }
 
-      // Create multiple tickets
-      const tickets: Ticket[] = [];
-      for (let i = 0; i < quantity; i++) {
-        const hash = this.generateTicketHash(event_id, userId);
+        // Check if event is published
+        if (event.status !== 'PUBLISHED') {
+          throw new ConflictException(
+            'Tickets can only be purchased for published events',
+          );
+        }
 
-        const ticket = await prisma.ticket.create({
-          data: {
+        // Check current ticket count for the event (derived from tickets table)
+        const currentTicketCount = await prisma.ticket.count({
+          where: { event_id: event_id },
+        });
+
+        // Check user ticket count for this event
+        const userTicketCount = await prisma.ticket.count({
+          where: {
             event_id: event_id,
             user_id: userId,
-            hash: hash,
+          },
+        });
+
+        // Validate user ticket limit (max 5 tickets)
+        if (userTicketCount + quantity > 5) {
+          throw new ConflictException(
+            `Cannot purchase ${quantity} tickets. User can have maximum 5 tickets per event. Current tickets: ${userTicketCount}`,
+          );
+        }
+
+        // Validate event capacity
+        if (currentTicketCount + quantity > event.capacity) {
+          throw new ConflictException(
+            `Not enough capacity. Requested: ${quantity}, Available: ${event.capacity - currentTicketCount}`,
+          );
+        }
+
+        // Create multiple tickets in a single query
+        const ticketData = Array.from({ length: quantity }, () => ({
+          event_id: event_id,
+          user_id: userId,
+          hash: this.generateTicketHash(event_id, userId),
+        }));
+
+        await prisma.ticket.createMany({
+          data: ticketData,
+          skipDuplicates: true, // Prevent duplicate hashes if unique constraint exists
+        });
+
+        // Fetch created tickets with event details for response
+        const createdTickets = await prisma.ticket.findMany({
+          where: {
+            event_id: event_id,
+            user_id: userId,
+            hash: { in: ticketData.map((t) => t.hash) },
           },
           include: {
             event: {
@@ -168,11 +210,23 @@ export class TicketsService {
           },
         });
 
-        tickets.push(ticket);
-      }
+        // If fewer tickets were created than requested (e.g., due to duplicates), throw error
+        if (createdTickets.length < quantity) {
+          throw new ConflictException(
+            'Failed to create all requested tickets. Please try again.',
+          );
+        }
 
-      return tickets;
-    });
+        return createdTickets;
+      },
+      {
+        // Use SERIALIZABLE isolation for maximum concurrency safety
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        // Set a timeout to prevent long locks
+        maxWait: 5000, // 5 seconds max wait for transaction
+        timeout: 30000, // 30 seconds max transaction time
+      },
+    );
   }
 
   async getUserTicketsForEvent(

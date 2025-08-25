@@ -94,7 +94,7 @@ const Event = () => {
   }
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-6">
+    <div className="flex flex-col gap-6">
       {location.state?.fromLink && (
         <Link to={location.state.fromLink} className="w-fit">
           <Button>
@@ -129,14 +129,14 @@ const Event = () => {
         )}
         {isCustomer &&
           isLive(currentEvent.start_date, currentEvent.end_date) && (
-            <p className="flex h-fit items-center gap-3">
+            <p className="my-1.5 flex h-fit items-center gap-3 text-sm sm:text-base">
               <span className="dot animate-ripple"></span>
-              <span>Live Now</span>
+              <span className="text-nowrap">Live Now</span>
             </p>
           )}
       </div>
       <p>{currentEvent.description}</p>
-      <div className="grid grid-cols-1 place-items-start gap-4 text-lg lg:grid-cols-2">
+      <div className="grid grid-cols-1 place-items-start gap-4 sm:text-lg lg:grid-cols-2">
         <div className="flex items-start gap-2">
           <div className="flex items-center gap-2">
             <MapPin />
@@ -209,7 +209,7 @@ const Event = () => {
         </div>
       )}
       {isCustomer && (
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <Button
             size="lg"
             className="hover:bg-primary group relative w-fit disabled:[&>span]:hidden"
@@ -232,8 +232,8 @@ const Event = () => {
               </span>
             )}
           {getUserTicketCount(currentEvent) >= 5 && (
-            <span className="text-warning flex items-center gap-1 text-sm">
-              <TriangleAlert className="size-6" />
+            <span className="text-warning flex items-center gap-1 text-xs">
+              <TriangleAlert className="size-4" />
               You have reached the maximum ticket limit for this event
             </span>
           )}

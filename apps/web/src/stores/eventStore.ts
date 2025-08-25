@@ -280,7 +280,7 @@ export const useEventStore = create<EventState>()(
         try {
           set({ isLoading: true, error: null });
 
-          const response = await api.get("/events/my-events");
+          const response = await eventsApi.getMyEvents();
           const events = response.data.data;
 
           set({

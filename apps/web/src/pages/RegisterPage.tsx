@@ -13,8 +13,7 @@ import { cn } from "@/lib/utils";
 import { toastError } from "@/utils/toastWrapper";
 import { Loader2Icon, UserRoundPen } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import type { SubmitHandler } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 
 type RegisterInputs = {

@@ -8,8 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
-import type { SubmitHandler } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";

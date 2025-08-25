@@ -38,9 +38,20 @@ export const eventsApi = {
   createEvent: (eventData: any) => api.post("/events", eventData),
 
   getEvent: (id: number) => api.get(`/events/${id}`),
+  getMyEvents: () => api.get(`/events/my-events`),
 
   updateEvent: (id: number, updates: any) =>
     api.patch(`/events/${id}`, updates),
 
   deleteEvent: (id: number) => api.delete(`/events/${id}`),
+};
+
+export const ticketsApi = {
+  fetchUserTicketsForEvent: (eventId: number) =>
+    api.get(`/tickets/my-tickets/${eventId}`),
+
+  fetchAllUserTickets: () => api.get(`/tickets/my-tickets`),
+
+  purchaseTickets: (eventId: number, quantity: number) =>
+    api.post(`/tickets/purchase`, { event_id: eventId, quantity }),
 };

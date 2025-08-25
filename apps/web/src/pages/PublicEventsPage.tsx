@@ -51,11 +51,6 @@ interface QueryFormData {
 const PublicEventsPage = () => {
   const { events, fetchEvents } = useEventStore();
 
-  // Returns YYYY-MM-DD format
-  const formatDateToLocal = (date: Date): string => {
-    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-  };
-
   const [filterData, setFilterData] = useState<QueryFormData>({
     search: "",
     category: "any",
@@ -89,10 +84,10 @@ const PublicEventsPage = () => {
         category:
           filterData.category !== "any" ? filterData.category : undefined,
         start_date: filterData.start_date
-          ? formatDateToLocal(filterData.start_date)
+          ? filterData.start_date.toISOString()
           : undefined,
         end_date: filterData.end_date
-          ? formatDateToLocal(filterData.end_date)
+          ? filterData.end_date.toISOString()
           : undefined,
         sort_by: filterData.sort_by,
       };
@@ -127,10 +122,10 @@ const PublicEventsPage = () => {
         category:
           filterData.category !== "any" ? filterData.category : undefined,
         start_date: filterData.start_date
-          ? formatDateToLocal(filterData.start_date)
+          ? filterData.start_date.toISOString()
           : undefined,
         end_date: filterData.end_date
-          ? formatDateToLocal(filterData.end_date)
+          ? filterData.end_date.toISOString()
           : undefined,
         sort_by: filterData.sort_by,
       };
@@ -273,7 +268,7 @@ const PublicEventsPage = () => {
         <div className="grid gap-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="event-location">From</Label>
-            {filterData.start_date && (
+            {filterData.start_date && !liveOnly && (
               <button
                 className="cursor-pointer"
                 onClick={() => {
@@ -347,7 +342,7 @@ const PublicEventsPage = () => {
         <div className="grid gap-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="event-location">To</Label>
-            {filterData.end_date && (
+            {filterData.end_date && !liveOnly && (
               <button
                 className="cursor-pointer"
                 onClick={() => {
