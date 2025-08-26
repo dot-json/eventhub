@@ -24,7 +24,7 @@ services:
     ports:
       - "${API_PORT}:${API_PORT}"
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+      DATABASE_URL: ${DATABASE_URL}
     networks:
       - eventhub-network
     depends_on:
