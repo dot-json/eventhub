@@ -30,7 +30,7 @@ export class UsersService {
         last_name: true,
         org_name: true,
         role: true,
-        is_blocked: true,
+        blocked_at: true,
         created_at: true,
         updated_at: true,
       },
@@ -59,7 +59,7 @@ export class UsersService {
         last_name: true,
         org_name: true,
         role: true,
-        is_blocked: true,
+        blocked_at: true,
         created_at: true,
         updated_at: true,
       },
@@ -176,7 +176,7 @@ export class UsersService {
    * Deletes a user by ID
    */
   async remove(id: number): Promise<{ message: string }> {
-    if (!id || typeof id !== 'number') {
+    if (!id) {
       throw new BadRequestException('Invalid user ID');
     }
 
@@ -219,7 +219,7 @@ export class UsersService {
         last_name: true,
         org_name: true,
         role: true,
-        is_blocked: true,
+        blocked_at: true,
         created_at: true,
         updated_at: true,
       },

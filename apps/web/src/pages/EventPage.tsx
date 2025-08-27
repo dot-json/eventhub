@@ -15,13 +15,13 @@ import {
 } from "lucide-react";
 import { cn, dateFormat } from "@/lib/utils";
 import { useLocation } from "react-router";
-import { Button } from "./ui/button";
-import EventEditor from "./event-editor";
+import { Button } from "../components/ui/button";
+import EventEditor from "../components/event-editor";
 import { toastError, toastInfo, toastSuccess } from "@/utils/toastWrapper";
 import { useUser } from "@/hooks/useAuth";
-import PurchaseTicket from "./purchase-ticket";
+import PurchaseTicket from "../components/purchase-ticket";
 
-const Event = () => {
+const EventPage = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const {
@@ -82,7 +82,7 @@ const Event = () => {
   }, [id, fetchEvent]);
 
   if (isLoading) {
-    return <Loader2Icon className="mx-auto animate-spin" />;
+    return <Loader2Icon className="mx-auto my-12 animate-spin" />;
   }
 
   if (error?.type === "NOT_FOUND") {
@@ -254,4 +254,4 @@ const Event = () => {
   );
 };
 
-export default Event;
+export default EventPage;

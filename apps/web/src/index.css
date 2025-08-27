@@ -15,7 +15,7 @@
   --secondary: oklch(0.9067 0 0);
   --secondary-foreground: oklch(0.3485 0 0);
   --muted: oklch(0.9158 0 0);
-  --muted-foreground: oklch(0.4313 0 0);
+  --muted-foreground: oklch(0.65 0 0);
   --accent: oklch(0.937 0 0);
   --accent-foreground: oklch(0.3485 0 0);
   --destructive: oklch(0.6382 0.2293 26.7059);
@@ -75,7 +75,7 @@
   --secondary: oklch(0.2768 0 0);
   --secondary-foreground: oklch(0.8359 0 0);
   --muted: oklch(0.2645 0 0);
-  --muted-foreground: oklch(0.8945 0 0);
+  --muted-foreground: oklch(0.5 0 0);
   --accent: oklch(0.9067 0 0);
   --accent-foreground: oklch(0.2221 0 0);
   --destructive: oklch(0.6382 0.2293 26.7059);
@@ -237,6 +237,19 @@ body {
       oklch(0.7 0.25 360)
     );
   }
+  .ticket-square-inner-border {
+    box-shadow:
+      inset 1px 1px 0px 0px var(--color-border),
+      inset 1px -1px 0px 0px var(--color-border);
+  }
+  .ticket-rect-inner-border {
+    box-shadow:
+      inset -1px 1px 0px 0px var(--color-border),
+      inset -1px -1px 0px 0px var(--color-border);
+  }
+  .full-border-shadow {
+    box-shadow: inset 0px 0px 0px 1px var(--color-border);
+  }
 
   @keyframes ripple {
     0% {
@@ -267,3 +280,31 @@ input::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+/* Hide time picker for time inputs */
+input[type="time"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+/* Custom Scrollbar */
+/* ::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  transition: color 0.2s ease;
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(
+    in oklch,
+    var(--muted-foreground) 20%,
+    var(--background)
+  );
+} */

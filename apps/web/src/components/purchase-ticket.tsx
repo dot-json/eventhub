@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import {
   Check,
@@ -6,7 +5,6 @@ import {
   Plus,
   ShoppingCart,
   SquareArrowOutUpRight,
-  X,
 } from "lucide-react";
 import { useEventStore } from "@/stores/eventStore";
 import { Label } from "./ui/label";
@@ -18,6 +16,7 @@ import {
   type SubmitHandler,
   useWatch,
 } from "react-hook-form";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { toastError, toastSuccess } from "@/utils/toastWrapper";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
@@ -32,7 +31,7 @@ interface PurchaseFormData {
 }
 
 const PurchaseTicket = ({ open, onClose }: PurchaseTicketProps) => {
-  const { currentEvent, fetchEvent } = useEventStore();
+  const { currentEvent } = useEventStore();
   const { purchaseTickets } = useTicketStore();
 
   const confettiRef = useRef<ConfettiRef>(null);
@@ -70,49 +69,14 @@ const PurchaseTicket = ({ open, onClose }: PurchaseTicketProps) => {
     }
   };
 
-  const handleClose = () => {
-    onClose();
-    if (verifiedOrderCount > 0 && currentEvent) {
-      fetchEvent(currentEvent.id);
-    }
-  };
-
   return (
-    <div
-      className={cn(
-        "pointer-events-none fixed inset-0 z-[771] grid place-items-start opacity-0 transition-opacity sm:place-items-center",
-        open && "pointer-events-auto opacity-100",
-      )}
-    >
-      <div
-        className="z-[769] hidden size-full bg-black/50 [grid-area:1/1] sm:block"
-        onClick={handleClose}
-      />
-
-      <div
-        className={cn(
-          "bg-background z-[771] mt-[calc(4rem+1px)] flex size-full max-h-[90vh] w-full flex-col overflow-scroll transition-transform duration-250 [grid-area:1/1] sm:m-4 sm:h-fit sm:max-w-xl sm:rounded-xl sm:border lg:max-w-2xl",
-          open ? "scale-100" : "scale-80",
-        )}
-      >
-        <div className="bg-background sticky top-0 z-10 flex items-center justify-between p-4 sm:p-6">
-          <h2 className="text-2xl sm:text-3xl">
-            {verifiedOrderCount > 0 ? "Payment Successful" : "Order Summary"}
-          </h2>
-          <Button
-            size="icon"
-            className="size-10"
-            variant="ghost"
-            onClick={handleClose}
-          >
-            <X className="size-5" />
-          </Button>
-        </div>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-2xl [&>button]:top-5.5 [&>button]:right-5.5">
+        <DialogHeader className="text-2xl leading-5 font-bold">
+          {verifiedOrderCount > 0 ? "Payment Successful" : "Order Summary"}
+        </DialogHeader>
         {verifiedOrderCount === 0 ? (
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col gap-8 p-4 sm:p-6 sm:pt-2"
-          >
+          <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
             <div className="grid grid-cols-[1fr_auto]">
               <div>
                 <p className="text-sm sm:text-base">Event</p>
@@ -176,7 +140,7 @@ const PurchaseTicket = ({ open, onClose }: PurchaseTicketProps) => {
             </div>
           </form>
         ) : (
-          <div className="flex flex-col gap-8 p-4 sm:p-6 sm:pt-2">
+          <div className="flex flex-col gap-4">
             <div className="grid grid-cols-[1fr_auto]">
               <div>
                 <p className="text-sm sm:text-base">Event</p>
@@ -199,7 +163,7 @@ const PurchaseTicket = ({ open, onClose }: PurchaseTicketProps) => {
                 size="lg"
                 className="w-fit"
                 type="button"
-                onClick={handleClose}
+                onClick={onClose}
               >
                 <Check />
                 Done
@@ -218,14 +182,14 @@ const PurchaseTicket = ({ open, onClose }: PurchaseTicketProps) => {
             </div>
           </div>
         )}
-      </div>
+      </DialogContent>
       <Confetti
         ref={confettiRef}
         manualstart
         options={{ spread: 90, particleCount: 100, ticks: 500 }}
         className="pointer-events-none absolute inset-0 z-[770] size-full"
       />
-    </div>
+    </Dialog>
   );
 };
 

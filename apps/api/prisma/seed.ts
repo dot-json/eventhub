@@ -5,6 +5,7 @@ import {
   $Enums,
 } from '../generated/prisma';
 import * as bcrypt from 'bcryptjs';
+import { set } from 'date-fns';
 
 const prisma = new PrismaClient();
 
@@ -93,8 +94,18 @@ async function main() {
       description:
         'A spectacular 3-day music festival featuring top artists from around the world. Experience amazing performances across multiple stages with food, drinks, and unforgettable memories.',
       category: $Enums.EventCategory.MUSIC,
-      start_date: new Date(today.getTime() - 24 * 60 * 60 * 1000), // Yesterday
-      end_date: new Date(today.getTime() + 27 * 60 * 60 * 1000), // In 3 days
+      start_date: set(new Date(today.getTime() - 24 * 60 * 60 * 1000), {
+        hours: 9,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0,
+      }), // Yesterday
+      end_date: set(new Date(today.getTime() + 27 * 60 * 60 * 1000), {
+        hours: 17,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0,
+      }), // In 3 days
       location: 'Central Park, New York',
       capacity: 5000,
       ticket_price: 125,
@@ -205,8 +216,13 @@ async function main() {
         event_id: liveEvent.id,
         user_id: customers[i].id,
         hash: `ticket-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        is_used: false,
+        used_at: null,
       },
+    });
+    // increment ticket count for live event
+    await prisma.event.update({
+      where: { id: ticket.event_id },
+      data: { tickets_sold: { increment: 1 } },
     });
     console.log(
       `[SEEDER] Ticket created for ${customers[i].first_name} - ${liveEvent.title}`,
@@ -230,8 +246,13 @@ async function main() {
           event_id: pastEvent.id,
           user_id: customers[i].id,
           hash: `ticket-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          is_used: true, // Mark as used since event is over
+          used_at: new Date(), // Mark as used since event is over
         },
+      });
+      // increment ticket count for live event
+      await prisma.event.update({
+        where: { id: ticket.event_id },
+        data: { tickets_sold: { increment: 1 } },
       });
       console.log(
         `[SEEDER] Used ticket created for ${customers[i].first_name} - ${pastEvent.title}`,
@@ -250,9 +271,6 @@ async function main() {
   );
   console.log(`[SEEDER] Events: 1 live, 3 upcoming, 2 past`);
   console.log(`[SEEDER] Tickets: Created for customers attending events`);
-  console.log(
-    '\n[SEEDER] You can now log in and test the application with these accounts!',
-  );
 }
 
 main()

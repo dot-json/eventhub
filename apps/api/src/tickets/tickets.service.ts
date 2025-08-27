@@ -25,7 +25,18 @@ export class TicketsService {
     return createHash('sha256')
       .update(dataToHash)
       .digest('hex')
-      .substring(0, 32); // Keep it 32 characters for QR code compatibility
+      .substring(0, 32); // 32 characters for QR code compatibility
+  }
+
+  /**
+   * Validate ticket hash format
+   *
+   * @param hash - Ticket hash to validate
+   * @returns
+   */
+  private validateTicketHash(hash: string): boolean {
+    const hashRegex = /^[a-f0-9]{32}$/; // 32 hex characters
+    return hashRegex.test(hash);
   }
 
   async create(
@@ -227,6 +238,64 @@ export class TicketsService {
         timeout: 30000, // 30 seconds max transaction time
       },
     );
+  }
+
+  async validateTicket(hash: string): Promise<Ticket> {
+    if (!this.validateTicketHash(hash)) {
+      throw new BadRequestException('Invalid ticket hash format');
+    }
+
+    const ticket = await this.prisma.ticket.findUnique({
+      where: { hash },
+      include: {
+        event: {
+          select: {
+            title: true,
+            start_date: true,
+            end_date: true,
+            location: true,
+          },
+        },
+      },
+    });
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+
+    const event = await this.prisma.event.findUnique({
+      where: { id: ticket.event_id },
+    });
+
+    if (!event) {
+      throw new NotFoundException('Associated event not found');
+    }
+
+    if (ticket.used_at) {
+      throw new ConflictException('Ticket has already been used');
+    }
+
+    const now = new Date();
+    const eventStart = new Date(event.start_date);
+    const eventEnd = new Date(event.end_date);
+    if (now < eventStart || now > eventEnd) {
+      throw new ConflictException('Ticket is not valid for this time');
+    }
+
+    return await this.prisma.ticket.update({
+      where: { hash },
+      data: { used_at: new Date() },
+      include: {
+        event: {
+          select: {
+            title: true,
+            start_date: true,
+            end_date: true,
+            location: true,
+          },
+        },
+      },
+    });
   }
 
   async getUserTicketsForEvent(

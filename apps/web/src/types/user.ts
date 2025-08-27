@@ -5,7 +5,7 @@ export interface User {
   last_name: string;
   org_name?: string;
   role: "CUSTOMER" | "ORGANIZER" | "ADMIN";
-  is_blocked: boolean;
+  blocked_at: string | null;
   created_at: string;
   updated_at: string;
 }

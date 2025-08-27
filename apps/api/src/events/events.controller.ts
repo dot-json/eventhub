@@ -11,12 +11,8 @@ import {
   UseGuards,
   Post,
   Request,
-  BadRequestException,
-  NotFoundException,
-  UnauthorizedException,
-  ConflictException,
-  InternalServerErrorException,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { JwtAuthGuard, RolesGuard, OptionalJwtAuthGuard } from './../guards';
@@ -36,52 +32,23 @@ export class EventsController {
     @Query() queryDto: QueryEventsDto,
     @Request() req?: RequestType & { user?: { id: number } },
   ) {
-    try {
-      // Extract userId if user is authenticated (optional)
-      const userId = req?.user?.id;
-      const events = await this.eventsService.findAll(queryDto, userId);
-      return ResponseBuilder.successWithCount(
-        events,
-        'Events retrieved successfully',
-      );
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException ||
-        error instanceof ConflictException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        error.message || 'Failed to retrieve events',
-      );
-    }
+    const userId = req?.user?.id;
+    const events = await this.eventsService.findAll(queryDto, userId);
+    return ResponseBuilder.successWithCount(
+      events,
+      'Events retrieved successfully',
+    );
   }
 
   @Get('my-events')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ORGANIZER, UserRole.ADMIN)
   async findMyEvents(@Request() req: RequestType & { user: { id: number } }) {
-    try {
-      const events = await this.eventsService.findByOrganizer(req.user.id);
-      return ResponseBuilder.successWithCount(
-        events,
-        'My events retrieved successfully',
-      );
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException ||
-        error instanceof ConflictException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        error.message || 'Failed to retrieve my events',
-      );
-    }
+    const events = await this.eventsService.findByOrganizer(req.user.id);
+    return ResponseBuilder.successWithCount(
+      events,
+      'My events retrieved successfully',
+    );
   }
 
   @Get(':id')
@@ -91,30 +58,16 @@ export class EventsController {
     @Param('id') id: string,
     @Request() req: RequestType & { user: { id: number; role: UserRole } },
   ) {
-    try {
-      const eventId = parseInt(id, 10);
-      if (isNaN(eventId)) {
-        throw new BadRequestException('Invalid event ID format');
-      }
-      const event = await this.eventsService.findOne(
-        eventId,
-        req.user.id,
-        req.user.role,
-      );
-      return ResponseBuilder.success(event, 'Event retrieved successfully');
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException ||
-        error instanceof ConflictException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        error.message || 'Failed to retrieve event',
-      );
+    const eventId = parseInt(id, 10);
+    if (isNaN(eventId)) {
+      throw new BadRequestException('Invalid event ID format');
     }
+    const event = await this.eventsService.findOne(
+      eventId,
+      req.user.id,
+      req.user.role,
+    );
+    return ResponseBuilder.success(event, 'Event retrieved successfully');
   }
 
   @Post()
@@ -124,25 +77,8 @@ export class EventsController {
     @Body(new ValidationPipe()) createEventDto: CreateEventDto,
     @Request() req: RequestType & { user: { id: number } },
   ) {
-    try {
-      const event = await this.eventsService.create(
-        createEventDto,
-        req.user.id,
-      );
-      return ResponseBuilder.success(event, 'Event created successfully');
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException ||
-        error instanceof ConflictException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        error.message || 'Failed to create event',
-      );
-    }
+    const event = await this.eventsService.create(createEventDto, req.user.id);
+    return ResponseBuilder.success(event, 'Event created successfully');
   }
 
   @Patch(':id')
@@ -153,31 +89,17 @@ export class EventsController {
     @Body(new ValidationPipe()) updateEventDto: UpdateEventDto,
     @Request() req: RequestType & { user: { id: number; role: UserRole } },
   ) {
-    try {
-      const eventId = parseInt(id, 10);
-      if (isNaN(eventId)) {
-        throw new BadRequestException('Invalid event ID format');
-      }
-      const event = await this.eventsService.update(
-        eventId,
-        updateEventDto,
-        req.user.id,
-        req.user.role,
-      );
-      return ResponseBuilder.success(event, 'Event updated successfully');
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException ||
-        error instanceof ConflictException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        error.message || 'Failed to update event',
-      );
+    const eventId = parseInt(id, 10);
+    if (isNaN(eventId)) {
+      throw new BadRequestException('Invalid event ID format');
     }
+    const event = await this.eventsService.update(
+      eventId,
+      updateEventDto,
+      req.user.id,
+      req.user.role,
+    );
+    return ResponseBuilder.success(event, 'Event updated successfully');
   }
 
   @Delete(':id')
@@ -188,25 +110,11 @@ export class EventsController {
     @Param('id') id: string,
     @Request() req: RequestType & { user: { id: number; role: UserRole } },
   ) {
-    try {
-      const eventId = parseInt(id, 10);
-      if (isNaN(eventId)) {
-        throw new BadRequestException('Invalid event ID format');
-      }
-      await this.eventsService.remove(eventId);
-      return ResponseBuilder.successNoData('Event deleted successfully');
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException ||
-        error instanceof ConflictException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        error.message || 'Failed to delete event',
-      );
+    const eventId = parseInt(id, 10);
+    if (isNaN(eventId)) {
+      throw new BadRequestException('Invalid event ID format');
     }
+    await this.eventsService.remove(eventId);
+    return ResponseBuilder.successNoData('Event deleted successfully');
   }
 }

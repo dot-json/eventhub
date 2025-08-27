@@ -1,6 +1,5 @@
-import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
-import { CalendarIcon, Loader2Icon, Plus, SquarePen, X } from "lucide-react";
+import { CalendarIcon, Loader2Icon, Plus, SquarePen } from "lucide-react";
 import { Calendar } from "./ui/calendar";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -17,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { toastError, toastSuccess } from "@/utils/toastWrapper";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { format, addDays, set } from "date-fns";
@@ -60,7 +60,6 @@ const EventEditor = ({ open, onClose, mode }: EditEventProps) => {
       description: "",
       category: "none",
       location: "",
-      // set the time to 9 am
       start_date: set(new Date(), {
         hours: 9,
         minutes: 0,
@@ -169,39 +168,12 @@ const EventEditor = ({ open, onClose, mode }: EditEventProps) => {
   };
 
   return (
-    <div
-      className={cn(
-        "pointer-events-none fixed inset-0 z-[771] grid place-items-start opacity-0 transition-opacity sm:place-items-center",
-        open && "pointer-events-auto opacity-100",
-      )}
-    >
-      <div
-        className="z-[771] hidden size-full bg-black/50 [grid-area:1/1] sm:block"
-        onClick={onClose}
-      />
-      <div
-        className={cn(
-          "bg-background z-[771] mt-[calc(4rem+1px)] flex size-full max-h-[90vh] w-full flex-col overflow-scroll transition-transform duration-250 [grid-area:1/1] sm:m-4 sm:h-fit sm:max-w-xl sm:rounded-xl sm:border lg:max-w-2xl",
-          open ? "scale-100" : "scale-80",
-        )}
-      >
-        <div className="bg-background sticky top-0 z-10 flex items-center justify-between p-4 sm:p-6">
-          <h2 className="text-2xl sm:text-3xl">
-            {mode === "edit" ? "Edit Event" : "Create Event"}
-          </h2>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-10"
-            onClick={onClose}
-          >
-            <X className="size-5" />
-          </Button>
-        </div>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="grid gap-4 p-4 sm:p-6 sm:pt-2"
-        >
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-2xl [&>button]:top-5.5 [&>button]:right-5.5">
+        <DialogHeader className="text-2xl leading-5 font-bold">
+          {mode === "edit" ? "Edit Event" : "Create Event"}
+        </DialogHeader>
+        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
           <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-3">
             <div className="col-span-2 grid gap-2">
               <Label htmlFor="event-name">Event Name</Label>
@@ -276,7 +248,7 @@ const EventEditor = ({ open, onClose, mode }: EditEventProps) => {
             )}
           </div>
           <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
-            <div className="grid grid-flow-col gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <div className="grid gap-2">
                 <Label htmlFor="event-location">Start Date</Label>
                 <Controller
@@ -395,7 +367,7 @@ const EventEditor = ({ open, onClose, mode }: EditEventProps) => {
                 />
               </div>
             </div>
-            <div className="grid grid-flow-col gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <div className="grid gap-2">
                 <Label htmlFor="event-location">End Date</Label>
                 <Controller
@@ -582,8 +554,8 @@ const EventEditor = ({ open, onClose, mode }: EditEventProps) => {
             </Button>
           )}
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

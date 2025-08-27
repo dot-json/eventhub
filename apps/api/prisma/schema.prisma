@@ -47,7 +47,7 @@ model User {
   last_name           String
   org_name            String?
   role                UserRole    @default(CUSTOMER)
-  is_blocked          Boolean     @default(false)
+  blocked_at          DateTime?   
   created_at          DateTime    @default(now())
   updated_at          DateTime    @updatedAt
 
@@ -84,7 +84,7 @@ model Ticket {
   event_id            Int
   user_id             Int
   hash                String        @unique
-  is_used             Boolean       @default(false)
+  used_at             DateTime?      
   created_at          DateTime      @default(now())
   updated_at          DateTime      @updatedAt
 

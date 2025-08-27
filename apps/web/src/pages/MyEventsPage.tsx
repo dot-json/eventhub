@@ -37,7 +37,7 @@ const MyEventsPage = () => {
         </Button>
       </div>
 
-      {isLoading && <Loader2Icon className="mx-auto animate-spin" />}
+      {isLoading && <Loader2Icon className="mx-auto my-12 animate-spin" />}
 
       {!isLoading && !error && (
         <>

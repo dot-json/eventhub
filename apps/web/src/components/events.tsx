@@ -1,4 +1,4 @@
-import { MapPin, SquareArrowOutUpRight, Tags } from "lucide-react";
+import { MapPin, SquareArrowOutUpRight, Tags, Tickets } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link } from "react-router";
 import { dateFormat } from "@/lib/utils";
@@ -13,6 +13,7 @@ interface MyEventProps {
   end_date: string;
   capacity: number;
   tickets_sold: number;
+  ticket_price?: number;
 }
 
 export const MyEvent = ({
@@ -81,6 +82,7 @@ export const PublicEvent = ({
   end_date,
   capacity,
   tickets_sold,
+  ticket_price,
 }: MyEventProps & { location: string }) => {
   const shortenDesc = (text: string) => {
     return text.length > 124 ? text.slice(0, 124) + "..." : text;
@@ -123,6 +125,9 @@ export const PublicEvent = ({
           )}
         </div>
         <p>{shortenDesc(description)}</p>
+        <p className="flex gap-2 text-lg font-semibold">
+          <Tickets />${ticket_price}
+        </p>
       </div>
       <div className="flex items-center justify-between gap-4 p-2">
         <Link

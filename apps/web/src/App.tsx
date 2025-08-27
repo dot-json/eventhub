@@ -9,9 +9,10 @@ import RegisterPage from "./pages/RegisterPage";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import SettingsPage from "./pages/SettingsPage";
 import MyEventsPage from "./pages/MyEventsPage";
-import Event from "./components/event";
+import EventPage from "./pages/EventPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import PublicEventsPage from "./pages/PublicEventsPage";
+import MyTicketsPage from "./pages/MyTicketsPage";
 
 function App() {
   return (
@@ -52,8 +53,16 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/my-tickets"
+              element={
+                <ProtectedRoute requiredRole="CUSTOMER">
+                  <MyTicketsPage />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/events" element={<PublicEventsPage />} />
-            <Route path="/events/:id" element={<Event />} />
+            <Route path="/events/:id" element={<EventPage />} />
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
             <Route path="/404" element={<NotFoundPage />} />
             <Route path="*" element={<Navigate to="/404" replace />} />

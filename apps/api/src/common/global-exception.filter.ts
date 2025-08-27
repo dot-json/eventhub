@@ -17,6 +17,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
 
+    // Handle HttpException (including BadRequestException, NotFoundException, etc.)
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
@@ -31,9 +32,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           ? exceptionResponse['message'].join(', ')
           : exceptionResponse['message'];
       }
+    } else if (exception instanceof Error) {
+      message = exception.message;
     }
 
-    const errorResponse = {
+    const errorResponse: ApiResponse = {
       message,
     };
 

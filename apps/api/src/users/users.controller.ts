@@ -11,10 +11,6 @@ import {
   UseGuards,
   Put,
   BadRequestException,
-  NotFoundException,
-  UnauthorizedException,
-  ConflictException,
-  InternalServerErrorException,
   Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -33,50 +29,21 @@ export class UsersController {
 
   @Get()
   async findAll() {
-    try {
-      const users = await this.usersService.findAll();
-      return ResponseBuilder.successWithCount(
-        users,
-        'Users retrieved successfully',
-      );
-    } catch (error) {
-      // Re-throw the original exception to maintain proper HTTP status codes
-      if (
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException ||
-        error instanceof ConflictException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        error.message || 'Failed to retrieve users',
-      );
-    }
+    const users = await this.usersService.findAll();
+    return ResponseBuilder.successWithCount(
+      users,
+      'Users retrieved successfully',
+    );
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    try {
-      const userId = parseInt(id, 10);
-      if (isNaN(userId)) {
-        throw new BadRequestException('Invalid user ID format');
-      }
-      const user = await this.usersService.findOne(userId);
-      return ResponseBuilder.success(user, 'User retrieved successfully');
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException ||
-        error instanceof ConflictException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        error.message || 'Failed to retrieve user',
-      );
+    const userId = parseInt(id, 10);
+    if (isNaN(userId)) {
+      throw new BadRequestException('Invalid user ID format');
     }
+    const user = await this.usersService.findOne(userId);
+    return ResponseBuilder.success(user, 'User retrieved successfully');
   }
 
   @Patch()
@@ -85,22 +52,8 @@ export class UsersController {
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
     @Request() req: RequestType & { user: { id: number } },
   ) {
-    try {
-      const user = await this.usersService.update(req.user.id, updateUserDto);
-      return ResponseBuilder.success(user, 'User updated successfully');
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException ||
-        error instanceof ConflictException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        error.message || 'Failed to update user',
-      );
-    }
+    const user = await this.usersService.update(req.user.id, updateUserDto);
+    return ResponseBuilder.success(user, 'User updated successfully');
   }
 
   @Put('password')
@@ -110,27 +63,11 @@ export class UsersController {
     @Body(ValidationPipe) updatePasswordDto: UpdatePasswordDto,
     @Request() req: RequestType & { user: { id: number } },
   ) {
-    try {
-      const result = await this.usersService.updatePassword(
-        updatePasswordDto,
-        req.user.id,
-      );
-      return ResponseBuilder.success(result, 'Password updated successfully');
-    } catch (error) {
-      // Re-throw the original exception to maintain proper HTTP status codes
-      if (
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException ||
-        error instanceof ConflictException
-      ) {
-        throw error;
-      }
-      // For any other errors, throw a generic internal server error
-      throw new InternalServerErrorException(
-        error.message || 'Failed to update password',
-      );
-    }
+    const result = await this.usersService.updatePassword(
+      updatePasswordDto,
+      req.user.id,
+    );
+    return ResponseBuilder.success(result, 'Password updated successfully');
   }
 
   @Delete(':id')
@@ -138,25 +75,11 @@ export class UsersController {
   @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   async remove(@Param('id') id: string) {
-    try {
-      const userId = parseInt(id, 10);
-      if (isNaN(userId)) {
-        throw new BadRequestException('Invalid user ID format');
-      }
-      await this.usersService.remove(userId);
-      return ResponseBuilder.successNoData('User deleted successfully');
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException ||
-        error instanceof ConflictException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        error.message || 'Failed to delete user',
-      );
+    const userId = parseInt(id, 10);
+    if (isNaN(userId)) {
+      throw new BadRequestException('Invalid user ID format');
     }
+    await this.usersService.remove(userId);
+    return ResponseBuilder.successNoData('User deleted successfully');
   }
 }

@@ -22,7 +22,7 @@ import {
 } from "@/stores/eventStore";
 import { toastError } from "@/utils/toastWrapper";
 import { format, set } from "date-fns";
-import { CalendarIcon, Search, X } from "lucide-react";
+import { CalendarIcon, Search, SearchX, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { PublicEvent } from "@/components/events";
 import { Switch } from "@/components/ui/switch";
@@ -152,8 +152,8 @@ const PublicEventsPage = () => {
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       <h1>Public Events</h1>
-      <div className="grid grid-cols-3 grid-rows-2 items-end gap-4 sm:grid-cols-5">
-        <div className="col-span-3 grid gap-2">
+      <div className="grid grid-cols-4 grid-rows-2 items-end gap-4 sm:grid-cols-5">
+        <div className="col-span-4 grid gap-2 sm:col-span-3">
           <div className="flex items-center justify-between">
             <Label htmlFor="event-location">Search in</Label>
             {filterData.search && (
@@ -201,7 +201,7 @@ const PublicEventsPage = () => {
             </form>
           </div>
         </div>
-        <div className="grid gap-2">
+        <div className="col-span-2 grid gap-2 sm:col-span-1">
           <div className="flex items-center justify-between">
             <Label htmlFor="event-location">Category</Label>
             {filterData.category && filterData.category !== "any" && (
@@ -239,7 +239,7 @@ const PublicEventsPage = () => {
             </SelectContent>
           </Select>
         </div>
-        <div className="grid gap-2">
+        <div className="col-span-2 grid gap-2 sm:col-span-1">
           <Label htmlFor="event-location">Sort By</Label>
           <Select
             value={filterData.sort_by}
@@ -250,7 +250,7 @@ const PublicEventsPage = () => {
               }))
             }
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full overflow-hidden">
               <SelectValue placeholder="Select a category" />
             </SelectTrigger>
             <SelectContent>
@@ -265,7 +265,7 @@ const PublicEventsPage = () => {
           </Select>
         </div>
 
-        <div className="grid gap-2">
+        <div className="col-span-2 grid gap-2 sm:col-span-1">
           <div className="flex items-center justify-between">
             <Label htmlFor="event-location">From</Label>
             {filterData.start_date && !liveOnly && (
@@ -339,7 +339,7 @@ const PublicEventsPage = () => {
             </PopoverContent>
           </Popover>
         </div>
-        <div className="grid gap-2">
+        <div className="col-span-2 grid gap-2 sm:col-span-1">
           <div className="flex items-center justify-between">
             <Label htmlFor="event-location">To</Label>
             {filterData.end_date && !liveOnly && (
@@ -412,7 +412,7 @@ const PublicEventsPage = () => {
             </PopoverContent>
           </Popover>
         </div>
-        <div className="mb-2.25 flex items-center gap-2">
+        <div className="my-1 flex items-center gap-2 sm:mb-2.25">
           <Switch
             id="live-only"
             checked={liveOnly}
@@ -425,6 +425,12 @@ const PublicEventsPage = () => {
         {events.map((event) => (
           <PublicEvent key={event.id} {...event} />
         ))}
+        {events.length === 0 && (
+          <p className="text-muted-foreground my-16 flex w-full items-center justify-center gap-2 text-center">
+            <SearchX />
+            No events found
+          </p>
+        )}
       </section>
     </div>
   );

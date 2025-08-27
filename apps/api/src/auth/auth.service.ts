@@ -60,7 +60,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    if (user.is_blocked) {
+    if (user.blocked_at !== null) {
       throw new UnauthorizedException('Account is blocked');
     }
 
@@ -111,7 +111,7 @@ export class AuthService {
 
       const user = await this.usersService.findOne(decoded.sub);
 
-      if (!user || user.is_blocked) {
+      if (!user || user.blocked_at !== null) {
         throw new UnauthorizedException('Invalid user or account blocked');
       }
 
