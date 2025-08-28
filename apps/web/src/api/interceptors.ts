@@ -1,23 +1,20 @@
 import { authApi, api } from "./client";
 
+// Types
+type AuthTokens = { access_token: string; refresh_token: string };
+type RefreshResponse = { data: { data: AuthTokens } };
+
 // Store integration functions - will be set by the user store
-let getTokens:
-  | (() => { access_token: string; refresh_token: string } | null)
-  | null = null;
-let updateTokens:
-  | ((tokens: { access_token: string; refresh_token: string }) => void)
-  | null = null;
+let getTokens: (() => AuthTokens | null) | null = null;
+let updateTokens: ((tokens: AuthTokens) => void) | null = null;
 let handleLogout: (() => void) | null = null;
 let refreshUserData: (() => Promise<void>) | null = null;
 
-let refreshTokenPromise: Promise<any> | null = null;
+let refreshTokenPromise: Promise<RefreshResponse> | null = null;
 
 export const setupAxiosInterceptors = (
-  tokenGetter: () => { access_token: string; refresh_token: string } | null,
-  tokenUpdater: (tokens: {
-    access_token: string;
-    refresh_token: string;
-  }) => void,
+  tokenGetter: () => AuthTokens | null,
+  tokenUpdater: (tokens: AuthTokens) => void,
   logoutHandler: () => void,
   userDataRefresher: () => Promise<void>,
 ) => {
@@ -83,7 +80,7 @@ api.interceptors.response.use(
         // Refresh user data to get any updates
         try {
           await refreshUserData?.();
-        } catch (userDataError) {
+        } catch {
           // Don't fail the request if user data refresh fails
           console.warn("Failed to refresh user data after token refresh");
         }

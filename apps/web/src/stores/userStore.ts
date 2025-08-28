@@ -88,7 +88,7 @@ export const useUserStore = create<UserState>()(
               tokens,
               message: response.data.message,
             };
-          } catch (error: any) {
+          } catch (error: unknown) {
             const errorObj = createAppError(error);
             set({
               isLoading: false,
@@ -122,7 +122,7 @@ export const useUserStore = create<UserState>()(
               tokens,
               message: response.data.message,
             };
-          } catch (error: any) {
+          } catch (error: unknown) {
             const errorObj = createAppError(error);
             set({
               isLoading: false,
@@ -188,7 +188,7 @@ export const useUserStore = create<UserState>()(
             set({ isLoading: false });
 
             return { message: response.data.message };
-          } catch (error: any) {
+          } catch (error: unknown) {
             const errorObj = createAppError(error);
             set({
               isLoading: false,
@@ -215,8 +215,8 @@ export const useUserStore = create<UserState>()(
             set({ user: updatedUser });
 
             return { message: response.data.message };
-          } catch (error: any) {
-            console.warn("Failed to refresh user data:", error.message);
+          } catch (error: unknown) {
+            console.warn("Failed to refresh user data:", error);
             const errorObj = createAppError(error);
             return {
               error: errorObj,

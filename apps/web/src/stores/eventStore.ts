@@ -191,6 +191,7 @@ interface EventState {
   ) => Promise<StoreResult<{ event: Event }>>;
   deleteEvent: (id: number) => Promise<StoreVoidResult>;
   getGroupedMyEvents: () => GroupedEvents;
+  getUserTicketCount: (event: Event) => number;
   clearError: () => void;
   clearCurrentEvent: () => void;
   clearPagination: () => void;

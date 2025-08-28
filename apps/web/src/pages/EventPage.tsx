@@ -62,8 +62,7 @@ const EventPage = () => {
           toastInfo(`Event moved to ${status}`);
         }
       }
-    } catch (error: any) {
-      console.log("Update error:", error);
+    } catch {
       toastError("Failed to update event status");
     }
   };

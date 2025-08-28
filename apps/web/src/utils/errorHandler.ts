@@ -49,9 +49,12 @@ export interface AppError {
     | "UNKNOWN";
 }
 
-export const createAppError = (error: any): AppError => {
+export const createAppError = (error: unknown): AppError => {
   const message = extractErrorMessage(error);
-  const statusCode = error?.response?.status;
+  const statusCode =
+    error && typeof error === "object" && "response" in error
+      ? (error as AxiosError).response?.status
+      : undefined;
 
   let type: AppError["type"] = "UNKNOWN";
 
