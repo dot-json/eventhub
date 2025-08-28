@@ -8,28 +8,29 @@ import {
   Max,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { EventCategory } from 'generated/prisma';
+import { UserRole } from 'generated/prisma';
 
-export class QueryEventsDto {
+export class QueryUsersDto {
   @IsOptional()
   @IsString()
   search?: string;
 
   @IsOptional()
-  @IsEnum(EventCategory)
-  category?: EventCategory;
+  @IsEnum(UserRole)
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      const upperValue = value.toUpperCase();
+      if (Object.values(UserRole).includes(upperValue as UserRole)) {
+        return upperValue as UserRole;
+      }
+    }
+    return value;
+  })
+  role?: UserRole;
 
   @IsOptional()
-  @IsDateString()
-  start_date?: string;
-
-  @IsOptional()
-  @IsDateString()
-  end_date?: string;
-
-  @IsOptional()
-  @IsEnum(['date_asc', 'date_desc', 'ticket_price_asc', 'ticket_price_desc'])
-  sort_by?: 'date_asc' | 'date_desc' | 'ticket_price_asc' | 'ticket_price_desc';
+  @IsEnum(['created_asc', 'created_desc'])
+  sort_by?: 'created_asc' | 'created_desc';
 
   @IsOptional()
   @IsInt()

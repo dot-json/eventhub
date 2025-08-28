@@ -70,6 +70,26 @@ async function main() {
       first_name: 'Bob',
       last_name: 'Wilson',
     },
+    {
+      email: 'customer4@eventhub.local',
+      first_name: 'Charlie',
+      last_name: 'Brown',
+    },
+    {
+      email: 'customer5@eventhub.local',
+      first_name: 'David',
+      last_name: 'Williams',
+    },
+    {
+      email: 'customer6@eventhub.local',
+      first_name: 'Eve',
+      last_name: 'Davis',
+    },
+    {
+      email: 'customer7@eventhub.local',
+      first_name: 'Frank',
+      last_name: 'Miller',
+    },
   ];
 
   for (const customerInfo of customerData) {
@@ -153,6 +173,270 @@ async function main() {
       capacity: 3000,
       ticket_price: 50,
       tickets_sold: 2800,
+    },
+    {
+      title: 'Jazz Night Extravaganza',
+      description:
+        'Experience an unforgettable evening of live jazz performances by top artists in an intimate setting.',
+      category: $Enums.EventCategory.MUSIC,
+      start_date: new Date('2025-09-20T20:00:00Z'),
+      end_date: new Date('2025-09-20T23:00:00Z'),
+      location: 'Blue Note Jazz Club, New York',
+      capacity: 300,
+      ticket_price: 75,
+      tickets_sold: 200,
+    },
+    {
+      title: 'Marathon City Run',
+      description:
+        'Join thousands of runners in this annual city marathon, featuring scenic routes and a vibrant community atmosphere.',
+      category: $Enums.EventCategory.SPORTS,
+      start_date: new Date('2025-10-05T07:00:00Z'),
+      end_date: new Date('2025-10-05T14:00:00Z'),
+      location: 'Central Park, New York',
+      capacity: 5000,
+      ticket_price: 60,
+      tickets_sold: 4500,
+    },
+    {
+      title: 'Modern Art Showcase',
+      description:
+        'Explore contemporary artworks from emerging and established artists in this curated gallery exhibition.',
+      category: $Enums.EventCategory.ART,
+      start_date: new Date('2025-10-10T10:00:00Z'),
+      end_date: new Date('2025-10-17T18:00:00Z'),
+      location: 'City Art Gallery, Los Angeles',
+      capacity: 500,
+      ticket_price: 20,
+      tickets_sold: 300,
+    },
+    {
+      title: 'AI Innovation Summit',
+      description:
+        'A conference exploring the latest advancements in artificial intelligence, featuring keynote speakers and hands-on demos.',
+      category: $Enums.EventCategory.CONFERENCE,
+      start_date: new Date('2025-10-12T08:00:00Z'),
+      end_date: new Date('2025-10-13T17:00:00Z'),
+      location: 'Tech Hub, Seattle',
+      capacity: 800,
+      ticket_price: 250,
+      tickets_sold: 600,
+    },
+    {
+      title: 'Photography Workshop',
+      description:
+        'Learn professional photography techniques from industry experts in this hands-on workshop.',
+      category: $Enums.EventCategory.WORKSHOP,
+      start_date: new Date('2025-10-15T09:00:00Z'),
+      end_date: new Date('2025-10-15T16:00:00Z'),
+      location: 'Community Center, Austin',
+      capacity: 50,
+      ticket_price: 120,
+      tickets_sold: 40,
+    },
+    {
+      title: 'Leadership Seminar',
+      description:
+        'Develop your leadership skills with insights from top executives in this interactive seminar.',
+      category: $Enums.EventCategory.SEMINAR,
+      start_date: new Date('2025-10-18T10:00:00Z'),
+      end_date: new Date('2025-10-18T15:00:00Z'),
+      location: 'Business School, Chicago',
+      capacity: 150,
+      ticket_price: 99,
+      tickets_sold: 100,
+    },
+    {
+      title: 'Sculpture Exhibition',
+      description:
+        'Discover stunning sculptures from local and international artists in this open-air exhibition.',
+      category: $Enums.EventCategory.EXHIBITION,
+      start_date: new Date('2025-10-20T11:00:00Z'),
+      end_date: new Date('2025-10-27T19:00:00Z'),
+      location: 'City Park, Denver',
+      capacity: 1000,
+      ticket_price: 15,
+      tickets_sold: 700,
+    },
+    {
+      title: 'Charity Gala for Education',
+      description:
+        'Support education initiatives at this elegant gala featuring live music, auctions, and inspiring speeches.',
+      category: $Enums.EventCategory.CHARITY,
+      start_date: new Date('2025-11-01T18:00:00Z'),
+      end_date: new Date('2025-11-01T23:00:00Z'),
+      location: 'Grand Hotel, Miami',
+      capacity: 400,
+      ticket_price: 200,
+      tickets_sold: 300,
+    },
+    {
+      title: 'Shakespeare in the Park',
+      description:
+        'Enjoy a captivating outdoor performance of Shakespeare\'s classic play, "A Midsummer Night\'s Dream."',
+      category: $Enums.EventCategory.THEATRE,
+      start_date: new Date('2025-11-05T19:00:00Z'),
+      end_date: new Date('2025-11-05T21:30:00Z'),
+      location: 'City Park Amphitheater, Portland',
+      capacity: 600,
+      ticket_price: 25,
+      tickets_sold: 500,
+    },
+    {
+      title: 'Halloween Dance Party',
+      description:
+        'Get ready for a spooky night of dancing, costumes, and live DJ performances at this Halloween bash.',
+      category: $Enums.EventCategory.PARTY,
+      start_date: new Date('2025-10-31T21:00:00Z'),
+      end_date: new Date('2025-11-01T02:00:00Z'),
+      location: 'Nightclub, Las Vegas',
+      capacity: 700,
+      ticket_price: 40,
+      tickets_sold: 600,
+    },
+    {
+      title: 'Fall Craft Fair',
+      description:
+        'Shop unique handmade goods from local artisans at this vibrant fall craft fair.',
+      category: $Enums.EventCategory.FAIR,
+      start_date: new Date('2025-11-08T10:00:00Z'),
+      end_date: new Date('2025-11-08T17:00:00Z'),
+      location: 'Community Grounds, Atlanta',
+      capacity: 2000,
+      ticket_price: 10,
+      tickets_sold: 1500,
+    },
+    {
+      title: 'Fashion Runway Show',
+      description:
+        'Witness the latest trends in this dazzling fashion show featuring top designers and models.',
+      category: $Enums.EventCategory.FASHION,
+      start_date: new Date('2025-11-10T20:00:00Z'),
+      end_date: new Date('2025-11-10T22:00:00Z'),
+      location: 'Fashion District, New York',
+      capacity: 500,
+      ticket_price: 80,
+      tickets_sold: 400,
+    },
+    {
+      title: 'Stand-Up Comedy Night',
+      description:
+        'Laugh out loud with top comedians performing their best sets in this hilarious comedy show.',
+      category: $Enums.EventCategory.COMEDY,
+      start_date: new Date('2025-11-15T20:00:00Z'),
+      end_date: new Date('2025-11-15T22:00:00Z'),
+      location: 'Comedy Club, Boston',
+      capacity: 250,
+      ticket_price: 35,
+      tickets_sold: 200,
+    },
+    {
+      title: 'Indie Film Festival',
+      description:
+        'Celebrate independent cinema with screenings of groundbreaking films and Q&A sessions with directors.',
+      category: $Enums.EventCategory.FILM,
+      start_date: new Date('2025-11-20T18:00:00Z'),
+      end_date: new Date('2025-11-23T22:00:00Z'),
+      location: 'Art House Theater, San Francisco',
+      capacity: 300,
+      ticket_price: 45,
+      tickets_sold: 200,
+    },
+    {
+      title: 'Rock Legends Concert',
+      description:
+        'Rock out with legendary bands performing their greatest hits in this electrifying concert.',
+      category: $Enums.EventCategory.MUSIC,
+      start_date: new Date('2025-11-25T19:00:00Z'),
+      end_date: new Date('2025-11-25T23:00:00Z'),
+      location: 'Arena, Los Angeles',
+      capacity: 5000,
+      ticket_price: 90,
+      tickets_sold: 4000,
+    },
+    {
+      title: 'Yoga Retreat',
+      description:
+        'Rejuvenate with a day of yoga, meditation, and wellness workshops in a serene environment.',
+      category: $Enums.EventCategory.WORKSHOP,
+      start_date: new Date('2025-11-30T08:00:00Z'),
+      end_date: new Date('2025-11-30T17:00:00Z'),
+      location: 'Retreat Center, Sedona',
+      capacity: 100,
+      ticket_price: 150,
+      tickets_sold: 80,
+    },
+    {
+      title: 'Holiday Charity Run',
+      description:
+        'Run for a cause in this festive 5K, supporting local charities with every step.',
+      category: $Enums.EventCategory.CHARITY,
+      start_date: new Date('2025-12-05T09:00:00Z'),
+      end_date: new Date('2025-12-05T12:00:00Z'),
+      location: 'City Park, Seattle',
+      capacity: 1000,
+      ticket_price: 30,
+      tickets_sold: 800,
+    },
+    {
+      title: 'Winter Fashion Expo',
+      description:
+        'Discover winter fashion trends from leading designers in this exclusive expo.',
+      category: $Enums.EventCategory.FASHION,
+      start_date: new Date('2025-12-10T11:00:00Z'),
+      end_date: new Date('2025-12-12T18:00:00Z'),
+      location: 'Convention Center, Miami',
+      capacity: 700,
+      ticket_price: 60,
+      tickets_sold: 500,
+    },
+    {
+      title: 'Broadway Musical Premiere',
+      description:
+        'Experience the world premiere of a new Broadway musical, filled with stunning performances and music.',
+      category: $Enums.EventCategory.THEATRE,
+      start_date: new Date('2025-12-15T19:30:00Z'),
+      end_date: new Date('2025-12-15T22:00:00Z'),
+      location: 'Theater District, New York',
+      capacity: 1200,
+      ticket_price: 120,
+      tickets_sold: 1000,
+    },
+    {
+      title: 'Winter Food Festival',
+      description:
+        'Savor seasonal dishes from top chefs at this cozy winter food festival.',
+      category: $Enums.EventCategory.CULINARY,
+      start_date: new Date('2025-12-18T12:00:00Z'),
+      end_date: new Date('2025-12-18T20:00:00Z'),
+      location: 'Waterfront, San Diego',
+      capacity: 1500,
+      ticket_price: 70,
+      tickets_sold: 1200,
+    },
+    {
+      title: 'Improv Comedy Show',
+      description:
+        'Enjoy a night of spontaneous laughter with talented improvisers creating comedy on the spot.',
+      category: $Enums.EventCategory.COMEDY,
+      start_date: new Date('2025-12-22T20:00:00Z'),
+      end_date: new Date('2025-12-22T22:00:00Z'),
+      location: 'Improv Theater, Chicago',
+      capacity: 200,
+      ticket_price: 30,
+      tickets_sold: 150,
+    },
+    {
+      title: "New Year's Eve Gala",
+      description:
+        'Ring in the new year with a glamorous gala featuring live music, dancing, and a midnight countdown.',
+      category: $Enums.EventCategory.PARTY,
+      start_date: new Date('2025-12-31T21:00:00Z'),
+      end_date: new Date('2026-01-01T02:00:00Z'),
+      location: 'Grand Ballroom, Las Vegas',
+      capacity: 800,
+      ticket_price: 150,
+      tickets_sold: 700,
     },
   ];
 
@@ -267,9 +551,11 @@ async function main() {
     `[SEEDER] Organizer: organizer@eventhub.local (password: organizer123)`,
   );
   console.log(
-    `[SEEDER] Customers: customer1@eventhub.local, customer2@eventhub.local, customer3@eventhub.local (password: customer123)`,
+    `[SEEDER] Customers: ${customers.length}, customer(n)@eventhub.local (password: customer123)`,
   );
-  console.log(`[SEEDER] Events: 1 live, 3 upcoming, 2 past`);
+  console.log(
+    `[SEEDER] Events: 1 live, ${upcomingEvents.length} upcoming, ${pastEvents.length} past`,
+  );
   console.log(`[SEEDER] Tickets: Created for customers attending events`);
 }
 

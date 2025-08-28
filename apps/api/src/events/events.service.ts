@@ -38,7 +38,17 @@ export class EventsService {
   async findAll(
     queryDto: QueryEventsDto = {},
     userId?: number,
-  ): Promise<EventSummary[]> {
+  ): Promise<{
+    events: EventSummary[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  }> {
     const {
       search,
       category,
@@ -46,8 +56,10 @@ export class EventsService {
       end_date,
       sort_by = 'date_asc',
       limit = 50,
-      offset = 0,
+      page = 1,
     } = queryDto;
+
+    const offset = (page - 1) * limit;
 
     const where: Prisma.EventWhereInput = {
       status: 'PUBLISHED',
@@ -129,7 +141,7 @@ export class EventsService {
         },
       });
 
-      return events.map((event) => ({
+      const eventSummaries = events.map((event) => ({
         id: event.id,
         title: event.title,
         description: event.description,
@@ -144,6 +156,25 @@ export class EventsService {
         organizer: event.organizer,
         user_ticket_count: event._count.tickets,
       }));
+
+      // Get total count for pagination
+      const total = await this.prisma.event.count({ where });
+
+      const totalPages = Math.ceil(total / limit);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+
+      return {
+        events: eventSummaries,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext,
+          hasPrev,
+        },
+      };
     } else {
       // Standard query without ticket counts for anonymous users
       const events = await this.prisma.event.findMany({
@@ -174,7 +205,7 @@ export class EventsService {
         },
       });
 
-      return events.map((event) => ({
+      const eventSummaries = events.map((event) => ({
         id: event.id,
         title: event.title,
         description: event.description,
@@ -188,6 +219,25 @@ export class EventsService {
         status: event.status,
         organizer: event.organizer,
       }));
+
+      // Get total count for pagination
+      const total = await this.prisma.event.count({ where });
+
+      const totalPages = Math.ceil(total / limit);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+
+      return {
+        events: eventSummaries,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext,
+          hasPrev,
+        },
+      };
     }
   }
 

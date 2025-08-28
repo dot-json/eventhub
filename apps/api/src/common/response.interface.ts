@@ -33,11 +33,37 @@ export class ResponseBuilder {
     };
   }
 
-  static successNoData(
-    message: string = 'Operation successful',
-  ): Omit<ApiResponse, 'data'> {
+  static successNoData(message: string = 'Operation successful'): ApiResponse {
     return {
       message,
+    };
+  }
+
+  static successWithPagination<T>(
+    data: T[],
+    message: string = 'Operation successful',
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    },
+  ): ApiResponse<T[]> & {
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  } {
+    return {
+      message,
+      data,
+      pagination,
     };
   }
 }

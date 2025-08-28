@@ -29,14 +29,15 @@ export class EventsController {
   @Get()
   @UseGuards(OptionalJwtAuthGuard)
   async findAll(
-    @Query() queryDto: QueryEventsDto,
+    @Query(new ValidationPipe({ transform: true })) queryDto: QueryEventsDto,
     @Request() req?: RequestType & { user?: { id: number } },
   ) {
     const userId = req?.user?.id;
-    const events = await this.eventsService.findAll(queryDto, userId);
-    return ResponseBuilder.successWithCount(
-      events,
+    const result = await this.eventsService.findAll(queryDto, userId);
+    return ResponseBuilder.successWithPagination(
+      result.events,
       'Events retrieved successfully',
+      result.pagination,
     );
   }
 

@@ -9,7 +9,8 @@ import { PrismaService } from '../prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
-import { User, UserRole } from '../../generated/prisma';
+import { Prisma, User, UserRole } from '../../generated/prisma';
+import { QueryUsersDto } from './dto/query-users.dto';
 import * as bcrypt from 'bcryptjs';
 
 export type SafeUser = Omit<User, 'password'>;
@@ -21,8 +22,59 @@ export class UsersService {
   /**
    * Retrieves all users (excluding passwords)
    */
-  async findAll(): Promise<SafeUser[]> {
+  async findAll(queryDto: QueryUsersDto): Promise<{
+    users: SafeUser[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  }> {
+    const {
+      search,
+      role,
+      sort_by = 'created_desc',
+      limit = 50,
+      page = 1,
+    } = queryDto;
+
+    const offset = (page - 1) * limit;
+
+    const where: Prisma.UserWhereInput = {};
+
+    if (search) {
+      where.OR = [
+        { email: { contains: search, mode: 'insensitive' } },
+        { first_name: { contains: search, mode: 'insensitive' } },
+        { last_name: { contains: search, mode: 'insensitive' } },
+        { org_name: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (role) {
+      where.role = role;
+    }
+
+    let orderBy: Prisma.UserOrderByWithRelationInput = {};
+    switch (sort_by) {
+      case 'created_asc':
+        orderBy.created_at = 'asc';
+        break;
+      case 'created_desc':
+        orderBy.created_at = 'desc';
+        break;
+      default:
+        orderBy.created_at = 'desc';
+    }
+
     const users = await this.prisma.user.findMany({
+      where,
+      orderBy,
+      take: limit,
+      skip: offset,
       select: {
         id: true,
         email: true,
@@ -34,12 +86,25 @@ export class UsersService {
         created_at: true,
         updated_at: true,
       },
-      orderBy: {
-        created_at: 'desc',
-      },
     });
 
-    return users;
+    const total = await this.prisma.user.count({ where });
+
+    const totalPages = Math.ceil(total / limit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    return {
+      users,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext,
+        hasPrev,
+      },
+    };
   }
 
   /**

@@ -12,6 +12,7 @@ import {
   Put,
   BadRequestException,
   Request,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -22,21 +23,29 @@ import { Roles } from './../decorators';
 import { UserRole } from 'generated/prisma';
 import { ResponseBuilder } from '../common';
 import { Request as RequestType } from 'express';
+import { QueryUsersDto } from './dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  async findAll() {
-    const users = await this.usersService.findAll();
-    return ResponseBuilder.successWithCount(
-      users,
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async findAll(
+    @Query(new ValidationPipe({ transform: true })) queryDto: QueryUsersDto,
+  ) {
+    const result = await this.usersService.findAll(queryDto);
+    return ResponseBuilder.successWithPagination(
+      result.users,
       'Users retrieved successfully',
+      result.pagination,
     );
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async findOne(@Param('id') id: string) {
     const userId = parseInt(id, 10);
     if (isNaN(userId)) {

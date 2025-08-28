@@ -86,7 +86,7 @@ export interface EventFilters {
   end_date?: string;
   sort_by?: "date_asc" | "date_desc" | "ticket_price_asc" | "ticket_price_desc";
   limit?: number;
-  offset?: number;
+  page?: number;
 }
 
 export interface GroupedEvents {
@@ -94,6 +94,15 @@ export interface GroupedEvents {
   upcoming: Event[];
   past: Event[];
   drafts: Event[];
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 // Helper functions for event categorization
@@ -165,14 +174,12 @@ interface EventState {
   // State
   events: Event[];
   currentEvent: Event | null;
+  pagination: Pagination | null;
   isLoading: boolean;
-  isCreating: boolean;
-  isUpdating: boolean;
-  isDeleting: boolean;
   error: AppError | null;
 
   // Actions
-  fetchEvents: (filters?: EventFilters) => Promise<StoreVoidResult>;
+  fetchEvents: (filters?: string) => Promise<StoreVoidResult>;
   fetchEvent: (id: number) => Promise<StoreResult<Event>>;
   fetchMyEvents: () => Promise<StoreVoidResult>;
   createEvent: (
@@ -183,12 +190,16 @@ interface EventState {
     updates: UpdateEventData,
   ) => Promise<StoreResult<{ event: Event }>>;
   deleteEvent: (id: number) => Promise<StoreVoidResult>;
+  getGroupedMyEvents: () => GroupedEvents;
   clearError: () => void;
   clearCurrentEvent: () => void;
+  clearPagination: () => void;
 
-  // Computed getters
-  getGroupedMyEvents: () => GroupedEvents;
-  getUserTicketCount: (event: Event) => number;
+  // Pagination helpers
+  getNextPage: () => number | null;
+  getPrevPage: () => number | null;
+  hasNextPage: () => boolean;
+  hasPrevPage: () => boolean;
 }
 
 export const useEventStore = create<EventState>()(
@@ -197,10 +208,8 @@ export const useEventStore = create<EventState>()(
       // Initial state
       events: [],
       currentEvent: null,
+      pagination: null,
       isLoading: false,
-      isCreating: false,
-      isUpdating: false,
-      isDeleting: false,
       error: null,
 
       // Computed getter
@@ -213,28 +222,30 @@ export const useEventStore = create<EventState>()(
       },
 
       // Actions
-      fetchEvents: async (filters?: EventFilters) => {
+      fetchEvents: async (filters?: string) => {
         try {
           set({ isLoading: true, error: null });
 
           // Build query parameters if filters are provided
-          const queryParams = new URLSearchParams();
-          if (filters) {
-            Object.entries(filters).forEach(([key, value]) => {
-              if (value) queryParams.append(key, value);
-            });
-          }
+          // const queryParams = new URLSearchParams();
+          // if (filters) {
+          //   Object.entries(filters).forEach(([key, value]) => {
+          //     if (value) queryParams.append(key, value);
+          //   });
+          // }
 
-          const queryString = queryParams.toString();
-          const url = queryString ? `/events?${queryString}` : "/events";
+          // const queryString = queryParams.toString();
+          const url = filters ? `/events?${filters}` : "/events?page=1&limit=5";
 
           // The API will automatically include user_ticket_count if user is authenticated
           // via JWT token in request headers
           const response = await api.get(url);
           const events = response.data.data;
+          const pagination = response.data.pagination;
 
           set({
             events,
+            pagination,
             isLoading: false,
           });
 
@@ -282,9 +293,11 @@ export const useEventStore = create<EventState>()(
 
           const response = await eventsApi.getMyEvents();
           const events = response.data.data;
+          const pagination = response.data.pagination;
 
           set({
             events,
+            pagination,
             isLoading: false,
           });
 
@@ -303,7 +316,7 @@ export const useEventStore = create<EventState>()(
 
       createEvent: async (eventData: CreateEventData) => {
         try {
-          set({ isCreating: true, error: null });
+          set({ isLoading: true, error: null });
 
           const response = await eventsApi.createEvent(eventData);
           const newEvent = response.data.data;
@@ -311,7 +324,7 @@ export const useEventStore = create<EventState>()(
           // Add the new event to the events list
           set((state) => ({
             events: [newEvent, ...state.events],
-            isCreating: false,
+            isLoading: false,
           }));
 
           return {
@@ -321,7 +334,7 @@ export const useEventStore = create<EventState>()(
         } catch (error) {
           const errorObj = createAppError(error);
           set({
-            isCreating: false,
+            isLoading: false,
             error: errorObj,
           });
           return {
@@ -332,7 +345,7 @@ export const useEventStore = create<EventState>()(
 
       updateEvent: async (id: number, updates: UpdateEventData) => {
         try {
-          set({ isUpdating: true, error: null });
+          set({ isLoading: true, error: null });
 
           const response = await eventsApi.updateEvent(id, updates);
           const updatedEvent = response.data.data;
@@ -344,7 +357,7 @@ export const useEventStore = create<EventState>()(
             ),
             currentEvent:
               state.currentEvent?.id === id ? updatedEvent : state.currentEvent,
-            isUpdating: false,
+            isLoading: false,
           }));
 
           return {
@@ -354,7 +367,7 @@ export const useEventStore = create<EventState>()(
         } catch (error) {
           const errorObj = createAppError(error);
           set({
-            isUpdating: false,
+            isLoading: false,
             error: errorObj,
           });
           return {
@@ -365,7 +378,7 @@ export const useEventStore = create<EventState>()(
 
       deleteEvent: async (id: number) => {
         try {
-          set({ isDeleting: true, error: null });
+          set({ isLoading: true, error: null });
 
           const response = await eventsApi.deleteEvent(id);
 
@@ -374,14 +387,14 @@ export const useEventStore = create<EventState>()(
             events: state.events.filter((event) => event.id !== id),
             currentEvent:
               state.currentEvent?.id === id ? null : state.currentEvent,
-            isDeleting: false,
+            isLoading: false,
           }));
 
           return { message: response.data.message };
         } catch (error) {
           const errorObj = createAppError(error);
           set({
-            isDeleting: false,
+            isLoading: false,
             error: errorObj,
           });
           return {
@@ -393,6 +406,35 @@ export const useEventStore = create<EventState>()(
       clearError: () => set({ error: null }),
 
       clearCurrentEvent: () => set({ currentEvent: null }),
+
+      clearPagination: () => set({ pagination: null }),
+
+      // Pagination helpers
+      getNextPage: () => {
+        const pagination = get().pagination;
+        if (pagination && pagination.hasNext) {
+          return pagination.page + 1;
+        }
+        return null;
+      },
+
+      getPrevPage: () => {
+        const pagination = get().pagination;
+        if (pagination && pagination.hasPrev) {
+          return pagination.page - 1;
+        }
+        return null;
+      },
+
+      hasNextPage: () => {
+        const pagination = get().pagination;
+        return pagination ? pagination.hasNext : false;
+      },
+
+      hasPrevPage: () => {
+        const pagination = get().pagination;
+        return pagination ? pagination.hasPrev : false;
+      },
     }),
     {
       name: "eventhub-event-store",

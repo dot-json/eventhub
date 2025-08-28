@@ -6,9 +6,6 @@ export const useEvents = () => {
     currentEvent,
     getGroupedMyEvents,
     isLoading,
-    isCreating,
-    isUpdating,
-    isDeleting,
     error,
     fetchEvents,
     fetchEvent,
@@ -28,9 +25,6 @@ export const useEvents = () => {
     currentEvent,
     groupedMyEvents,
     isLoading,
-    isCreating,
-    isUpdating,
-    isDeleting,
     error,
 
     // Actions
@@ -45,7 +39,6 @@ export const useEvents = () => {
 
     // Computed values
     hasEvents: events.length > 0,
-    isAnyLoading: isLoading || isCreating || isUpdating || isDeleting,
 
     // Individual groups for convenience
     liveMyEvents: groupedMyEvents.live,
