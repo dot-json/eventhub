@@ -58,7 +58,7 @@ export class UsersService {
       where.role = role;
     }
 
-    let orderBy: Prisma.UserOrderByWithRelationInput = {};
+    const orderBy: Prisma.UserOrderByWithRelationInput = {};
     switch (sort_by) {
       case 'created_asc':
         orderBy.created_at = 'asc';
@@ -153,7 +153,7 @@ export class UsersService {
           first_name: createUserDto.first_name,
           last_name: createUserDto.last_name,
           org_name: createUserDto.org_name,
-          role: (createUserDto.role as UserRole) || UserRole.CUSTOMER,
+          role: createUserDto.role || UserRole.CUSTOMER,
         },
       });
 

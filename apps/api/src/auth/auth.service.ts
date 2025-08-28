@@ -107,7 +107,7 @@ export class AuthService {
     refreshToken: string,
   ): Promise<Pick<AuthResponse, 'access_token' | 'refresh_token'>> {
     try {
-      const decoded = this.jwtService.verify(refreshToken) as JwtPayload;
+      const decoded = this.jwtService.verify(refreshToken);
 
       const user = await this.usersService.findOne(decoded.sub);
 
