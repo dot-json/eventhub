@@ -17,7 +17,7 @@ import {
 import { EventsService } from './events.service';
 import { JwtAuthGuard, RolesGuard, OptionalJwtAuthGuard } from './../guards';
 import { Roles } from './../decorators';
-import { UserRole } from 'generated/prisma';
+import { UserRole } from '../../generated/prisma';
 import { CreateEventDto, UpdateEventDto, QueryEventsDto } from './dto';
 import { Request as RequestType } from 'express';
 import { ResponseBuilder } from '../common';

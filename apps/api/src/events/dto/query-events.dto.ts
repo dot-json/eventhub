@@ -8,7 +8,7 @@ import {
   Max,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { EventCategory } from 'generated/prisma';
+import { EventCategory } from '../../../generated/prisma';
 
 export class QueryEventsDto {
   @IsOptional()

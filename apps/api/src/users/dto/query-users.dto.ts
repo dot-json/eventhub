@@ -8,7 +8,7 @@ import {
   Max,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { UserRole } from 'generated/prisma';
+import { UserRole } from '../../../generated/prisma';
 
 export class QueryUsersDto {
   @IsOptional()

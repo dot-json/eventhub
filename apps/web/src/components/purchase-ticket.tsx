@@ -71,7 +71,7 @@ const PurchaseTicket = ({ open, onClose }: PurchaseTicketProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl [&>button]:top-5.5 [&>button]:right-5.5">
+      <DialogContent className="z-[771] sm:max-w-2xl [&>button]:top-5.5 [&>button]:right-5.5">
         <DialogHeader className="text-2xl leading-5 font-bold">
           {verifiedOrderCount > 0 ? "Payment Successful" : "Order Summary"}
         </DialogHeader>

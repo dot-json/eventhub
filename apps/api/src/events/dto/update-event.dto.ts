@@ -11,7 +11,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
-import { $Enums } from 'generated/prisma';
+import { $Enums } from '../../../generated/prisma';
 
 export class UpdateEventDto {
   @IsOptional()

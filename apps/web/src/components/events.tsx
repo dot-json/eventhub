@@ -83,7 +83,8 @@ export const PublicEvent = ({
   capacity,
   tickets_sold,
   ticket_price,
-}: MyEventProps & { location: string }) => {
+  fromLink,
+}: MyEventProps & { location: string; fromLink: string }) => {
   const shortenDesc = (text: string) => {
     return text.length > 124 ? text.slice(0, 124) + "..." : text;
   };
@@ -100,7 +101,7 @@ export const PublicEvent = ({
   };
 
   return (
-    <div className="bg-secondary flex flex-col gap-1 rounded-2xl p-1 transition-shadow hover:shadow-md">
+    <div className="bg-secondary animate-in fade-in flex flex-col gap-1 rounded-2xl p-1 transition-shadow hover:shadow-md">
       <div className="bg-background flex flex-col gap-3 rounded-xl p-4 shadow-md">
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
           <div>
@@ -130,11 +131,7 @@ export const PublicEvent = ({
         </p>
       </div>
       <div className="flex items-center justify-between gap-4 p-2">
-        <Link
-          to={`/events/${id}`}
-          className="w-fit"
-          state={{ fromLink: "/events" }}
-        >
+        <Link to={`/events/${id}`} className="w-fit" state={{ fromLink }}>
           <Button className="w-fit">
             <SquareArrowOutUpRight />
             View Details

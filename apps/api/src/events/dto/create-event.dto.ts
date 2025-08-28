@@ -11,7 +11,7 @@ import {
   IsNumber,
   Min,
 } from 'class-validator';
-import { $Enums } from 'generated/prisma';
+import { $Enums } from '../../../generated/prisma';
 
 export class CreateEventDto {
   @IsNotEmpty()

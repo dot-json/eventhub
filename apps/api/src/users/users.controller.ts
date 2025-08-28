@@ -20,7 +20,7 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import { JwtAuthGuard } from './../guards';
 import { RolesGuard } from './../guards';
 import { Roles } from './../decorators';
-import { UserRole } from 'generated/prisma';
+import { UserRole } from '../../generated/prisma';
 import { ResponseBuilder } from '../common';
 import { Request as RequestType } from 'express';
 import { QueryUsersDto } from './dto';

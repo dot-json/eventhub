@@ -15,13 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  EVENT_CATEGORIES,
-  useEventStore,
-  type EventCategory,
-} from "@/stores/eventStore";
+import { EVENT_CATEGORIES, useEventStore } from "@/stores/eventStore";
 import { toastError } from "@/utils/toastWrapper";
-import { format, set } from "date-fns";
+import { format } from "date-fns";
 import { CalendarIcon, Search, SearchX, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { PublicEvent } from "@/components/events";
@@ -35,7 +31,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { useSearchParams } from "react-router";
+import { useSearchParams, useNavigate, useLocation } from "react-router";
+import { cn } from "@/lib/utils";
 
 type SortOptions =
   | "date_desc"
@@ -50,16 +47,6 @@ const SORT_OPTIONS: Array<{ value: SortOptions; label: string }> = [
   { value: "ticket_price_desc", label: "Ticket price descending" },
 ];
 
-interface QueryFormData {
-  search: string;
-  category: EventCategory | "any";
-  start_date: string | null;
-  end_date: string | null;
-  sort_by: SortOptions;
-  page: number;
-  limit: number;
-}
-
 const PublicEventsPage = () => {
   const {
     events,
@@ -69,146 +56,139 @@ const PublicEventsPage = () => {
     getPrevPage,
     hasNextPage,
     hasPrevPage,
+    isLoading,
+    error,
   } = useEventStore();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const [queryData, setQueryData] = useState<QueryFormData>({
-    search: "",
-    category: "any",
-    start_date: null,
-    end_date: null,
-    sort_by: "date_asc",
-    page: 1,
-    limit: 5,
-  });
+  const [search, setSearch] = useState("");
+  const [liveOnly, setLiveOnly] = useState(false);
 
-  const updateFilters = (newFilters: Partial<QueryFormData>) => {
+  const buildQuery = () => {
+    const params = new URLSearchParams();
+
+    if (search) params.set("search", search);
+
+    const category = searchParams.get("category");
+    if (category && category !== "any") params.set("category", category);
+
+    const startDate = searchParams.get("start_date");
+    if (startDate) params.set("start_date", startDate);
+
+    const endDate = searchParams.get("end_date");
+    if (endDate) params.set("end_date", endDate);
+
+    const sortBy = searchParams.get("sort_by") || "date_asc";
+    params.set("sort_by", sortBy);
+
+    const page = searchParams.get("page") || "1";
+    params.set("page", page);
+
+    params.set("limit", "5");
+
+    return params.toString();
+  };
+
+  const updateFilters = (newParams: Record<string, string>) => {
     const params = new URLSearchParams(searchParams);
 
-    Object.entries(newFilters).forEach(([key, value]) => {
-      // keep numbers and booleans; only drop undefined, null, empty-string, or "any"
-      if (
-        value !== undefined &&
-        value !== null &&
-        value !== "any" &&
-        value !== ""
-      ) {
-        // For dates, serialize to YYYY-MM-DD for cleaner URLs
-        if (
-          (key === "start_date" || key === "end_date") &&
-          typeof value === "string"
-        ) {
-          try {
-            const d = new Date(value);
-            const short = format(d, "yyyy-MM-dd");
-            params.set(key, short);
-          } catch (err) {
-            params.set(key, String(value));
-          }
-        } else {
-          params.set(key, String(value));
-        }
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value && value !== "any") {
+        params.set(key, value);
       } else {
         params.delete(key);
       }
     });
 
-    setSearchParams(params);
+    params.set("page", "1");
+    params.set("limit", "5");
+    if (!params.get("sort_by")) params.set("sort_by", "date_asc");
+
+    navigate(`/events?${params.toString()}`, { replace: true });
   };
 
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [liveOnly, setLiveOnly] = useState(false);
+  useEffect(() => {
+    setSearch(searchParams.get("search") || "");
 
-  // Pagination handlers
+    if (searchParams.toString() === "") {
+      navigate("/events?sort_by=date_asc&page=1&limit=5", { replace: true });
+      return;
+    }
+
+    const query = buildQuery();
+    fetchEvents(query);
+  }, [searchParams]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams(searchParams);
+    if (search) {
+      params.set("search", search);
+    } else {
+      params.delete("search");
+    }
+    params.set("page", "1");
+    navigate(`/events?${params.toString()}`, { replace: true });
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+
+    if (value === "") {
+      const params = new URLSearchParams(searchParams);
+      params.delete("search");
+      params.set("page", "1");
+      navigate(`/events?${params.toString()}`, { replace: true });
+    }
+  };
+
+  const handleLiveOnly = (value: boolean) => {
+    setLiveOnly(value);
+
+    if (value) {
+      const now = new Date();
+      const startOfDay = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+      ).toISOString();
+      const endOfDay = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        23,
+        59,
+        59,
+      ).toISOString();
+      updateFilters({
+        start_date: startOfDay,
+        end_date: endOfDay,
+      });
+    } else {
+      updateFilters({
+        start_date: "",
+        end_date: "",
+      });
+    }
+  };
+
   const handlePageChange = (page: number) => {
-    // update local state and sync to URL; the effect watching `searchParams` will
-    // trigger the actual fetch so we avoid duplicate requests and races.
-    setQueryData((prev) => ({ ...prev, page }));
-    updateFilters({ page });
+    const params = new URLSearchParams(searchParams);
+    params.set("page", page.toString());
+    navigate(`/events?${params.toString()}`, { replace: true });
   };
 
   const handleNextPage = () => {
     const nextPage = getNextPage();
-    if (nextPage) {
-      handlePageChange(nextPage);
-    }
+    if (nextPage) handlePageChange(nextPage);
   };
 
   const handlePrevPage = () => {
     const prevPage = getPrevPage();
-    if (prevPage) {
-      handlePageChange(prevPage);
-    }
+    if (prevPage) handlePageChange(prevPage);
   };
-
-  // Initialize from URL params on first load
-  useEffect(() => {
-    const urlPage = parseInt(searchParams.get("page") || "1");
-    const urlSearch = searchParams.get("search") || "";
-    const urlCategory =
-      (searchParams.get("category") as EventCategory) || "any";
-    const urlSortBy =
-      (searchParams.get("sort_by") as SortOptions) || "date_asc";
-
-    // Dates in URL are YYYY-MM-DD; convert to ISO strings for internal use
-    const urlStartDate = searchParams.get("start_date")
-      ? new Date(`${searchParams.get("start_date")}T00:00:00Z`).toISOString()
-      : null;
-    const urlEndDate = searchParams.get("end_date")
-      ? new Date(`${searchParams.get("end_date")}T23:59:59Z`).toISOString()
-      : null;
-
-    setQueryData({
-      search: urlSearch,
-      category: urlCategory,
-      start_date: urlStartDate,
-      end_date: urlEndDate,
-      sort_by: urlSortBy,
-      page: urlPage,
-      limit: 5,
-    });
-
-    setIsInitialized(true);
-  }, []); // Only run once on mount
-
-  const handleSetLiveOnly = (value: boolean) => {
-    // if true set the date range and make them disabled
-    if (value) {
-      setQueryData((prev) => ({
-        ...prev,
-        start_date: new Date().toISOString(),
-        end_date: new Date().toISOString(),
-      }));
-    } else {
-      setQueryData((prev) => ({
-        ...prev,
-        start_date: null,
-        end_date: null,
-      }));
-    }
-
-    setLiveOnly(value);
-  };
-
-  useEffect(() => {
-    if (!isInitialized) return; // Skip on initial load
-
-    updateFilters(queryData);
-  }, [
-    queryData.category,
-    queryData.start_date,
-    queryData.end_date,
-    queryData.page,
-    queryData.sort_by,
-    isInitialized,
-  ]);
-
-  useEffect(() => {
-    if (!isInitialized) return; // Skip on initial load
-
-    // Trigger store fetch with the serialized search params so pagination is applied
-    fetchEvents(searchParams.toString());
-  }, [searchParams.toString(), isInitialized]);
 
   const [dateOpen, setDateOpen] = useState<{ start: boolean; end: boolean }>({
     start: false,
@@ -216,47 +196,29 @@ const PublicEventsPage = () => {
   });
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-6">
+    <div className="flex h-full flex-1 flex-col gap-4 sm:gap-6">
       <h1>Public Events</h1>
       <div className="grid grid-cols-4 grid-rows-2 items-end gap-4 sm:grid-cols-5">
         <div className="col-span-4 grid gap-2 sm:col-span-3">
           <div className="flex items-center justify-between">
             <Label htmlFor="event-location">Search in</Label>
-            {queryData.search && (
-              <button
-                className="cursor-pointer"
-                onClick={() => {
-                  setQueryData((prev) => ({ ...prev, search: "", page: 1 }));
-                  updateFilters({ search: "", page: 1 });
-                }}
-              >
-                <X className="size-3.5" />
-              </button>
-            )}
+            <button
+              className={cn(
+                "pointer-events-none cursor-pointer opacity-0 transition-opacity",
+                search && "pointer-events-auto opacity-100",
+              )}
+              onClick={() => handleSearchChange("")}
+            >
+              <X className="size-3.5" />
+            </button>
           </div>
           <div className="grid">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                // reset to first page when submitting a new search
-                setQueryData((prev) => ({ ...prev, page: 1 }));
-                updateFilters({ search: queryData.search, page: 1 });
-              }}
-              className="grid"
-            >
+            <form onSubmit={handleSearchSubmit} className="grid">
               <Input
                 placeholder="Names, descriptions, locations..."
                 className="[grid-area:1/1] [&>input]:pr-9"
-                value={queryData.search}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setQueryData((prev) => ({ ...prev, search: value }));
-                  if (value === "") {
-                    // clear search and reset to first page
-                    setQueryData((prev) => ({ ...prev, page: 1 }));
-                    updateFilters({ search: "", page: 1 });
-                  }
-                }}
+                value={search}
+                onChange={(e) => handleSearchChange(e.target.value)}
               />
               <Button
                 type="submit"
@@ -269,30 +231,25 @@ const PublicEventsPage = () => {
             </form>
           </div>
         </div>
+
         <div className="col-span-2 grid gap-2 sm:col-span-1">
           <div className="flex items-center justify-between">
             <Label htmlFor="event-location">Category</Label>
-            {queryData.category && queryData.category !== "any" && (
-              <button
-                className="cursor-pointer"
-                onClick={() => {
-                  setQueryData((prev) => ({ ...prev, category: "any" }));
-                }}
-              >
-                <X className="size-3.5" />
-              </button>
-            )}
+            <button
+              className={cn(
+                "pointer-events-none cursor-pointer opacity-0 transition-opacity",
+                searchParams.get("category") &&
+                  searchParams.get("category") !== "any" &&
+                  "pointer-events-auto opacity-100",
+              )}
+              onClick={() => updateFilters({ category: "" })}
+            >
+              <X className="size-3.5" />
+            </button>
           </div>
           <Select
-            value={queryData.category}
-            onValueChange={(value) =>
-              // reset to first page when changing category
-              setQueryData((prev) => ({
-                ...prev,
-                category: value as EventCategory | "any",
-                page: 1,
-              }))
-            }
+            value={searchParams.get("category") || "any"}
+            onValueChange={(value) => updateFilters({ category: value })}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a category" />
@@ -309,18 +266,12 @@ const PublicEventsPage = () => {
             </SelectContent>
           </Select>
         </div>
+
         <div className="col-span-2 grid gap-2 sm:col-span-1">
           <Label htmlFor="event-location">Sort By</Label>
           <Select
-            value={queryData.sort_by}
-            onValueChange={(value) =>
-              // reset to first page on sort change
-              setQueryData((prev) => ({
-                ...prev,
-                sort_by: value as SortOptions,
-                page: 1,
-              }))
-            }
+            value={searchParams.get("sort_by") || "date_asc"}
+            onValueChange={(value) => updateFilters({ sort_by: value })}
           >
             <SelectTrigger className="w-full overflow-hidden">
               <SelectValue placeholder="Select a category" />
@@ -340,17 +291,20 @@ const PublicEventsPage = () => {
         <div className="col-span-2 grid gap-2 sm:col-span-1">
           <div className="flex items-center justify-between">
             <Label htmlFor="event-location">From</Label>
-            {queryData.start_date && !liveOnly && (
-              <button
-                className="cursor-pointer"
-                onClick={() => {
-                  setDateOpen((prev) => ({ ...prev, start: false }));
-                  setQueryData((prev) => ({ ...prev, start_date: null }));
-                }}
-              >
-                <X className="size-3.5" />
-              </button>
-            )}
+            <button
+              className={cn(
+                "pointer-events-none cursor-pointer opacity-0 transition-opacity",
+                searchParams.get("start_date") &&
+                  !liveOnly &&
+                  "pointer-events-auto opacity-100",
+              )}
+              onClick={() => {
+                setDateOpen((prev) => ({ ...prev, start: false }));
+                updateFilters({ start_date: "" });
+              }}
+            >
+              <X className="size-3.5" />
+            </button>
           </div>
           <Popover
             open={dateOpen.start}
@@ -365,12 +319,12 @@ const PublicEventsPage = () => {
             >
               <Button
                 variant="outline"
-                data-empty={queryData.start_date === null}
+                data-empty={!searchParams.get("start_date")}
                 className="data-[empty=true]:text-muted-foreground justify-start text-left font-normal"
               >
                 <CalendarIcon />
-                {queryData.start_date ? (
-                  format(new Date(queryData.start_date), "PP")
+                {searchParams.get("start_date") ? (
+                  format(new Date(searchParams.get("start_date")!), "PP")
                 ) : (
                   <span>Pick a date</span>
                 )}
@@ -380,33 +334,23 @@ const PublicEventsPage = () => {
               <Calendar
                 mode="single"
                 selected={
-                  queryData.start_date !== null
-                    ? new Date(queryData.start_date)
+                  searchParams.get("start_date")
+                    ? new Date(searchParams.get("start_date")!)
                     : undefined
                 }
                 onSelect={(selectedDate) => {
                   if (selectedDate) {
-                    const formattedDate = set(selectedDate, {
-                      hours: 0,
-                      minutes: 0,
-                      seconds: 0,
-                    });
+                    const startOfDay = new Date(
+                      selectedDate.getFullYear(),
+                      selectedDate.getMonth(),
+                      selectedDate.getDate(),
+                    ).toISOString();
+                    const endDate = searchParams.get("end_date");
 
-                    if (
-                      queryData.end_date !== null &&
-                      formattedDate <= new Date(queryData.end_date)
-                    ) {
-                      setQueryData((prev) => ({
-                        ...prev,
-                        start_date: formattedDate.toISOString(),
-                        page: 1,
-                      }));
-                    } else if (queryData.end_date === null) {
-                      setQueryData((prev) => ({
-                        ...prev,
-                        start_date: formattedDate.toISOString(),
-                        page: 1,
-                      }));
+                    if (endDate && selectedDate <= new Date(endDate)) {
+                      updateFilters({ start_date: startOfDay });
+                    } else if (!endDate) {
+                      updateFilters({ start_date: startOfDay });
                     } else {
                       toastError("Start date must be before end date");
                     }
@@ -417,20 +361,24 @@ const PublicEventsPage = () => {
             </PopoverContent>
           </Popover>
         </div>
+
         <div className="col-span-2 grid gap-2 sm:col-span-1">
           <div className="flex items-center justify-between">
             <Label htmlFor="event-location">To</Label>
-            {queryData.end_date && !liveOnly && (
-              <button
-                className="cursor-pointer"
-                onClick={() => {
-                  setDateOpen((prev) => ({ ...prev, end: false }));
-                  setQueryData((prev) => ({ ...prev, end_date: null }));
-                }}
-              >
-                <X className="size-3.5" />
-              </button>
-            )}
+            <button
+              className={cn(
+                "pointer-events-none cursor-pointer opacity-0 transition-opacity",
+                searchParams.get("end_date") &&
+                  !liveOnly &&
+                  "pointer-events-auto opacity-100",
+              )}
+              onClick={() => {
+                setDateOpen((prev) => ({ ...prev, end: false }));
+                updateFilters({ end_date: "" });
+              }}
+            >
+              <X className="size-3.5" />
+            </button>
           </div>
           <Popover
             open={dateOpen.end}
@@ -445,12 +393,12 @@ const PublicEventsPage = () => {
             >
               <Button
                 variant="outline"
-                data-empty={!queryData.end_date}
+                data-empty={!searchParams.get("end_date")}
                 className="data-[empty=true]:text-muted-foreground justify-start text-left font-normal"
               >
                 <CalendarIcon />
-                {queryData.end_date ? (
-                  format(new Date(queryData.end_date), "PP")
+                {searchParams.get("end_date") ? (
+                  format(new Date(searchParams.get("end_date")!), "PP")
                 ) : (
                   <span>Pick a date</span>
                 )}
@@ -460,32 +408,26 @@ const PublicEventsPage = () => {
               <Calendar
                 mode="single"
                 selected={
-                  queryData.end_date !== null
-                    ? new Date(queryData.end_date)
+                  searchParams.get("end_date")
+                    ? new Date(searchParams.get("end_date")!)
                     : undefined
                 }
                 onSelect={(selectedDate) => {
                   if (selectedDate) {
-                    const formattedDate = set(selectedDate, {
-                      hours: 23,
-                      minutes: 59,
-                      seconds: 59,
-                    });
-                    if (
-                      queryData.start_date !== null &&
-                      formattedDate >= new Date(queryData.start_date)
-                    ) {
-                      setQueryData((prev) => ({
-                        ...prev,
-                        end_date: formattedDate.toISOString(),
-                        page: 1,
-                      }));
-                    } else if (queryData.start_date === null) {
-                      setQueryData((prev) => ({
-                        ...prev,
-                        end_date: formattedDate.toISOString(),
-                        page: 1,
-                      }));
+                    const endOfDay = new Date(
+                      selectedDate.getFullYear(),
+                      selectedDate.getMonth(),
+                      selectedDate.getDate(),
+                      23,
+                      59,
+                      59,
+                    ).toISOString();
+                    const startDate = searchParams.get("start_date");
+
+                    if (startDate && selectedDate >= new Date(startDate)) {
+                      updateFilters({ end_date: endOfDay });
+                    } else if (!startDate) {
+                      updateFilters({ end_date: endOfDay });
                     } else {
                       toastError("End date must be after start date");
                     }
@@ -496,27 +438,48 @@ const PublicEventsPage = () => {
             </PopoverContent>
           </Popover>
         </div>
+
         <div className="my-1 flex items-center gap-2 sm:mb-2.25">
           <Switch
             id="live-only"
             checked={liveOnly}
-            onCheckedChange={handleSetLiveOnly}
+            onCheckedChange={handleLiveOnly}
           />
           <Label htmlFor="live-only">Live Only</Label>
         </div>
       </div>
-      <section className="flex flex-col gap-6">
-        {events.map((event) => (
-          <PublicEvent key={event.id} {...event} />
-        ))}
-        {events.length === 0 && (
-          <p className="text-muted-foreground my-16 flex w-full items-center justify-center gap-2 text-center">
-            <SearchX />
-            No events found
-          </p>
+
+      <section className="flex h-full flex-1 flex-col gap-6">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-muted-foreground">Loading events...</div>
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-destructive">
+              Error loading events: {error.message}
+            </div>
+          </div>
+        ) : (
+          <>
+            {events.map((event) => (
+              <PublicEvent
+                key={event.id}
+                {...event}
+                fromLink={location.pathname + location.search}
+              />
+            ))}
+            {events.length === 0 && (
+              <p className="text-muted-foreground my-16 flex w-full items-center justify-center gap-2 text-center">
+                <SearchX />
+                No events found
+              </p>
+            )}
+          </>
         )}
-        {pagination && pagination.totalPages > 1 && (
-          <Pagination>
+
+        {!isLoading && !error && pagination && pagination.totalPages > 1 && (
+          <Pagination className="mt-auto">
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
@@ -529,7 +492,6 @@ const PublicEventsPage = () => {
                 />
               </PaginationItem>
 
-              {/* Generate page numbers */}
               {Array.from(
                 { length: Math.min(5, pagination.totalPages) },
                 (_, i) => {

@@ -8,7 +8,13 @@ import {
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { QueryEventsDto } from './dto/query-events.dto';
-import { EventStatus, Event, $Enums, Prisma, UserRole } from 'generated/prisma';
+import {
+  EventStatus,
+  Event,
+  $Enums,
+  Prisma,
+  UserRole,
+} from '../../generated/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
 import { PrismaService } from '../prisma.service';
 
