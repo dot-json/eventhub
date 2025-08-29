@@ -55,6 +55,13 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/eventhub_test
 
+      - name: Push Prisma schema
+        run: |
+          cd apps/api
+          pnpm prisma db:push
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/eventhub_test
+
       - name: Seed database
         run: |
           cd apps/api
