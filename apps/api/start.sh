@@ -36,18 +36,8 @@ wait_for_service postgres 5432 30
 
 if [ $? -eq 0 ]; then
   log "Database is ready!"
-
-  log "Pushing database schema..."
-  pnpx prisma db push
-  
-  if [ $? -eq 0 ]; then
-    log "Database schema updated successfully!"
-    log "Starting NestJS application..."
-    exec node dist/src/main
-  else
-    log "Schema push failed!"
-    exit 1
-  fi
+  log "Starting NestJS application..."
+  exec node dist/src/main
 else
   log "Database is not available. Exiting..."
   exit 1

@@ -22,6 +22,7 @@ docker compose -f docker-compose.dev.yml up --build
 cd apps/api
 pnpm db:migrate:deploy
 pnpm db:generate
+pnpm db:seed
 ```
 
 ## Project Structure
@@ -91,6 +92,13 @@ pnpm db:migrate --name migration_name
 # Seed data
 pnpm db:seed
 ```
+
+### Seeder
+
+- **Admin**: admin@eventhub.local:admin123
+- **Organizer**: organizer@eventhub.local:organizer123
+- **Customer**: customer(n)@eventhub.local:customer123
+- **Events**: 1 Live, 25 upcoming, 2 past
 
 ## Production
 
