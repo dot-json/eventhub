@@ -41,7 +41,7 @@ interface FormData {
 
 const EventEditor = ({ open, onClose, mode }: EditEventProps) => {
   const navigate = useNavigate();
-  const { currentEvent, updateEvent, createEvent, deleteEvent, isUpdating } =
+  const { currentEvent, updateEvent, createEvent, deleteEvent, isLoading } =
     useEventStore();
   const [dateOpen, setDateOpen] = useState<{ start: boolean; end: boolean }>({
     start: false,
@@ -531,17 +531,13 @@ const EventEditor = ({ open, onClose, mode }: EditEventProps) => {
           </div>
           {mode === "edit" ? (
             <div className="flex items-center justify-between">
-              <Button
-                type="submit"
-                disabled={isUpdating}
-                className="mt-2 w-fit"
-              >
-                {isUpdating ? (
+              <Button type="submit" disabled={isLoading} className="mt-2 w-fit">
+                {isLoading ? (
                   <Loader2Icon className="animate-spin" />
                 ) : (
                   <SquarePen />
                 )}
-                {isUpdating ? "Updating..." : "Update Event"}
+                {isLoading ? "Updating..." : "Update Event"}
               </Button>
               <Button type="button" variant="destructive" onClick={onDelete}>
                 Delete
