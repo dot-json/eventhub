@@ -59,6 +59,8 @@ jobs:
         run: |
           cd apps/api
           pnpm db:seed
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/eventhub_test
 
       - name: Build projects
         run: pnpm build
