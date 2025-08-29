@@ -248,7 +248,7 @@ export class EventsService {
   }
 
   async findByOrganizer(organizerId: number): Promise<EventSummary[]> {
-    return this.prisma.event.findMany({
+    return await this.prisma.event.findMany({
       where: {
         organizer_id: organizerId,
       },

@@ -267,7 +267,7 @@ export class UsersService {
   /**
    * Counts total number of users
    */
-  async count(): Promise<number> {
+  count(): Promise<number> {
     return this.prisma.user.count();
   }
 
@@ -299,7 +299,7 @@ export class UsersService {
   /**
    * Finds a user by email (including password for authentication)
    */
-  async findByEmail(email: string): Promise<User | null> {
+  findByEmail(email: string): Promise<User | null> {
     return this.prisma.user.findUnique({
       where: { email },
     });
