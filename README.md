@@ -9,7 +9,7 @@ A full-stack event management platform built with NestJS and React.
 pnpm install
 
 # Set up .env files
-cp .example.env .env
+cp .env.example .env
 cp apps/api/.env.example apps/api/.env
 
 # Start development environment
