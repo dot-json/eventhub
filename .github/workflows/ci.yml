@@ -45,6 +45,8 @@ jobs:
         run: |
           cd apps/api
           pnpm prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/eventhub_test
 
       - name: Run database migrations
         run: |
